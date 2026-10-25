@@ -255,3 +255,16 @@ h1, h2, h3, h4 { margin: 0; }
 .auth-foot { display: flex; justify-content: center; gap: 22px; }
 .blocked-screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; padding: 30px; color: var(--bad); }
 .blocked-screen p { color: var(--text); max-width: 320px; }
+
+/* ===== daily register ===== */
+.daybook-btn { margin: 0 0 12px; }
+.dbk-head { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 6px; padding: 0 4px 6px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.dbk-row { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 6px; align-items: center; background: var(--card); border-radius: 14px; padding: 8px; margin-bottom: 6px; box-shadow: var(--shadow); border-left: 4px solid var(--off); }
+.dbk-row.occupied { border-left-color: var(--occ); } .dbk-row.free { border-left-color: var(--free); } .dbk-row.maintenance { border-left-color: var(--mnt); }
+.dbk-row.changed { background: var(--primary-l); }
+.dbk-name { display: flex; flex-direction: column; min-width: 0; } .dbk-name b { font-size: 15px; } .dbk-name small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dbk-in, .dbk-note { width: 100%; min-height: 42px; padding: 8px 10px; border-radius: 11px; border: 1.5px solid var(--line); background: var(--soft); font-weight: 700; outline: none; }
+.dbk-in:focus, .dbk-note:focus { border-color: var(--primary); background: var(--card); }
+.dbk-note { grid-column: 1 / -1; font-weight: 400; min-height: 38px; font-size: 14px; }
+.dbk-multi { grid-column: 2 / -1; }
+.dbk-bar { position: sticky; bottom: 0; padding-top: 6px; background: linear-gradient(to top, var(--bg) 70%, transparent); }

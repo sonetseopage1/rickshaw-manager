@@ -34,7 +34,9 @@
             { key: 'default_charge', label: t('setup.defCharge'), type: 'number', hint: t('setup.defChargeHint') },
             { key: 'status', label: t('setup.status'), type: 'chips', options: this.$opts.statuses(), def: 'active' },
             { key: 'note', label: t('entry.note'), type: 'textarea' },
-          ];
+          ].concat(this.form.item ? [] : [
+            { key: 'count', label: t('setup.bulkCount'), type: 'number', hint: t('setup.bulkHint') },
+          ]);
           if (f === 'driver') return [
             { key: 'name', label: t('setup.name'), req: true },
             { key: 'phone', label: t('setup.phone'), type: 'tel' },
@@ -87,10 +89,21 @@
           if (kind === 'staff') return this.saveStaff(v);
           var table = kind + 's';
           if (kind === 'rickshaw') {
-            var dup = this.rickshaws.find(function (r) { return r.number.toLowerCase() === String(v.number).toLowerCase() && (!item || r.id !== item.id); });
-            if (dup) { RM.toast(this.$t('setup.dupRickshaw'), 'err'); return; }
+            var count = !item && v.count ? Math.min(Math.floor(v.count), 60) : 1;
+            delete v.count;
+            var names = [];
+            for (var i = 1; i <= count; i++) names.push(count > 1 ? v.number + '-' + U.num(i, RM.state.lang) : v.number);
+            var taken = this.rickshaws.map(function (r) { return r.number.toLowerCase(); });
+            var clash = names.some(function (nm) { return taken.indexOf(nm.toLowerCase()) >= 0 && !(item && item.number.toLowerCase() === nm.toLowerCase()); });
+            if (clash) { RM.toast(this.$t('setup.dupRickshaw'), 'err'); return; }
             v.owner_id = v.owner_id || null;
             v.status = v.status || 'active';
+            if (count > 1) {
+              names.forEach(function (nm) { D.save('rickshaws', Object.assign({}, v, { number: nm })); });
+              RM.toast(this.$t('common.saved'), 'ok');
+              this.form = null;
+              return;
+            }
           }
           if (item) v.id = item.id;
           D.save(table, v);

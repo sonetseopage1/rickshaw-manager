@@ -98,6 +98,7 @@
         '<p v-else class="muted">{{ $t(\'home.askAdmin\') }}</p></div>' +
 
         '<template v-else>' +
+        '<button class="btn soft block daybook-btn" @click="go(\'daybook\')"><ic name="receipt" :size="18"/> {{ $t(\'home.openDaybook\') }}</button>' +
         '<div class="seg-scroll"><button v-for="k in [\'all\', \'free\', \'occupied\', \'maintenance\']" :key="k" class="seg" :class="[\'s-\' + k, {on: filter === k}]" @click="filter = k">' +
         '{{ $t(\'home.f_\' + k) }} <b>{{ $n(counts[k]) }}</b></button></div>' +
 

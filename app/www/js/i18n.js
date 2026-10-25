@@ -122,6 +122,11 @@
     'banner.dropped': 'কিছু পরিবর্তন অনুমোদিত নয়, তাই বাতিল হয়েছে।', 'banner.planLimit': 'প্যাকেজের রিকশা সীমা শেষ, রিকশাটি যোগ হয়নি।',
     'blocked.title': 'অ্যাক্সেস বন্ধ', 'blocked.text': 'আপনার অ্যাকাউন্ট বা গ্যারেজ বন্ধ করা হয়েছে। বিস্তারিত জানতে যোগাযোগ করুন।',
     'boot.error': 'অ্যাপ চালু করা যায়নি। পেজটি রিফ্রেশ করুন।',
+    'title.daybook': 'দৈনিক খাতা', 'home.openDaybook': 'দৈনিক খাতায় সব একসাথে লিখুন',
+    'daybook.hint': 'কাগজের খাতার মতো: প্রতি রিকশার জমা, চার্জ ও মন্তব্য লিখে নিচে সংরক্ষণ চাপুন। চার্জ ফাঁকা থাকলে রিকশার ডিফল্ট বসবে।',
+    'daybook.saveAll': 'সব সংরক্ষণ', 'daybook.saved': '{n}টি হিসাব সংরক্ষিত হয়েছে', 'daybook.nothing': 'কোনো পরিবর্তন নেই',
+    'daybook.multi': 'এই রিকশার {n}টি হিসাব আছে, "হিসাব" পেজ থেকে বদলান',
+    'setup.bulkCount': 'একসাথে কয়টি রিকশা যোগ করবেন (ঐচ্ছিক)', 'setup.bulkHint': 'যেমন নাম "দ্বীপ" আর সংখ্যা ৫ দিলে দ্বীপ-১ থেকে দ্বীপ-৫ হবে',
   };
 
   var en = {
@@ -244,6 +249,11 @@
     'banner.dropped': 'Some changes were not allowed and were undone.', 'banner.planLimit': 'Your plan\'s rickshaw limit is reached, the rickshaw was not added.',
     'blocked.title': 'Access blocked', 'blocked.text': 'Your account or garage has been blocked. Please get in touch for details.',
     'boot.error': 'The app could not start. Please reload the page.',
+    'title.daybook': 'Daily register', 'home.openDaybook': 'Write everything in the daily register',
+    'daybook.hint': 'Like the paper register: fill deposit, charge and note for each rickshaw, then tap Save. An empty charge uses the rickshaw default.',
+    'daybook.saveAll': 'Save all', 'daybook.saved': '{n} entries saved', 'daybook.nothing': 'No changes',
+    'daybook.multi': 'This rickshaw has {n} entries, edit them on the Accounts page',
+    'setup.bulkCount': 'How many rickshaws to add at once (optional)', 'setup.bulkHint': 'E.g. name "Dip" and count 5 creates Dip-1 to Dip-5',
   };
 
   var dict = { bn: bn, en: en };
