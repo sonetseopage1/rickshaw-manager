@@ -55,7 +55,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: mbstring, xml, ctype, fileinfo, pdo_sqlite, sqlite3
+          extensions: mbstring, xml, dom, libxml, xmlwriter, ctype, fileinfo, filter, hash, openssl, session, tokenizer, curl, intl, bcmath, zip, pdo_sqlite, sqlite3
           tools: composer
 
       - name: Install and test
