@@ -21,6 +21,7 @@ jobs:
       - name: Install dependencies and create the Android project
         working-directory: app
         run: |
+          sed -i "s/BUILD: 0,/BUILD: ${{ github.run_number }},/" www/js/config.js
           npm install
           npx cap add android
           npx @capacitor/assets generate --android

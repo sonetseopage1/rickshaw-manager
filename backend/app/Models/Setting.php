@@ -19,6 +19,10 @@ class Setting extends Model
         'announcement' => '',
         'support_phone' => '',
         'currency' => '৳',
+        'app_build' => '0',
+        'app_min_build' => '0',
+        'app_apk_url' => '',
+        'app_notes' => '',
     ];
 
     public static function get(string $key, ?string $default = null): ?string

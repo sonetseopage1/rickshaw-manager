@@ -31,6 +31,10 @@ class AuthController extends Controller
                 'announcement' => Setting::get('announcement'),
                 'support_phone' => Setting::get('support_phone'),
                 'currency' => Setting::get('currency'),
+                'app_build' => (int) Setting::get('app_build'),
+                'app_min_build' => (int) Setting::get('app_min_build'),
+                'app_apk_url' => Setting::get('app_apk_url'),
+                'app_notes' => Setting::get('app_notes'),
             ],
         ], fn ($v) => $v !== null);
     }

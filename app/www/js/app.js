@@ -59,6 +59,13 @@
         }
         return null;
       },
+      update: function () {
+        var s = this.s.session && this.s.session.settings;
+        if (!s || !RM.api.isNative() || !s.app_apk_url) return null;
+        var mine = RM_CONFIG.BUILD || 0;
+        if ((s.app_build || 0) <= mine) return null;
+        return { url: s.app_apk_url, notes: s.app_notes, force: (s.app_min_build || 0) > mine };
+      },
       announcement: function () {
         var a = this.s.session && this.s.session.settings && this.s.session.settings.announcement;
         return a && !this.s.announcementHidden ? a : '';
@@ -69,16 +76,20 @@
       back: function () { history.back(); },
       syncNow: function () { RM.sync.run(); },
       logout: function () { RM.auth.logout(); },
+      doUpdate: function () { window.open(this.update.url, '_blank'); },
     },
     template: '<div class="root">' +
       '<div v-if="!s.ready" class="boot"><div class="spinner"></div></div>' +
       '<page-auth v-else-if="!s.session"/>' +
+      '<div v-else-if="update && update.force" class="blocked-screen upd"><ic name="sync" :size="48"/><h2>{{ $t(\'update.required\') }}</h2>' +
+      '<p>{{ update.notes || $t(\'update.requiredText\') }}</p><button class="btn primary" @click="doUpdate">{{ $t(\'update.now\') }}</button></div>' +
       '<div v-else-if="s.blocked" class="blocked-screen"><ic name="shield" :size="48"/><h2>{{ $t(\'blocked.title\') }}</h2>' +
       '<p>{{ s.blocked.trim() || $t(\'blocked.text\') }}</p><button class="btn primary" @click="logout">{{ $t(\'settings.logout\') }}</button></div>' +
       '<div v-else class="app">' +
       '<header class="topbar"><button v-if="isSub" class="icon-btn light" @click="back" :aria-label="$t(\'common.prev\')"><ic name="left" :size="22"/></button>' +
       '<div class="tb-title"><b>{{ title }}</b><small v-if="!isSub && user">{{ $t(\'role.\' + user.role) }} · {{ user.name }}</small></div>' +
       '<button class="sync-chip" :class="chip.cls" @click="syncNow"><i></i><span v-if="chip.text">{{ chip.text }}</span></button></header>' +
+      '<div v-if="update" class="banner info"><ic name="sync" :size="16"/> <span>{{ $t(\'update.new\') }}<template v-if="update.notes"> — {{ update.notes }}</template></span><button class="mini pri" @click="doUpdate">{{ $t(\'update.now\') }}</button></div>' +
       '<div v-if="banner" class="banner" :class="banner.kind"><ic name="alert" :size="16"/> {{ banner.text }}</div>' +
       '<div v-if="announcement" class="banner info"><ic name="info" :size="16"/> <span>{{ announcement }}</span><button class="icon-btn light" @click="s.announcementHidden = true"><ic name="x" :size="16"/></button></div>' +
       '<main class="content"><component :is="\'page-\' + route" :key="route"/></main>' +

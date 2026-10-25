@@ -34,6 +34,29 @@ class SettingsController extends Controller
         foreach ($data as $k => $v) {
             Setting::put($k, (string) $v);
         }
+
+        // Android app updates: the super admin uploads the new APK here and every installed app shows an "update" prompt.
+        $app = $request->validate([
+            'app_build' => 'nullable|integer|min:0',
+            'app_min_build' => 'nullable|integer|min:0',
+            'app_notes' => 'nullable|string|max:300',
+            'apk' => 'nullable|file|max:102400|extensions:apk',
+        ]);
+        Setting::put('app_min_build', (string) ($app['app_min_build'] ?? 0));
+        Setting::put('app_notes', (string) ($app['app_notes'] ?? ''));
+        if ($request->hasFile('apk')) {
+            $build = (int) ($app['app_build'] ?? 0);
+            $dir = public_path('downloads');
+            if (! is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            $name = 'rickshaw-manager-' . $build . '.apk';
+            $request->file('apk')->move($dir, $name);
+            Setting::put('app_apk_url', url('downloads/' . $name));
+            Setting::put('app_build', (string) $build);
+        } elseif (isset($app['app_build'])) {
+            Setting::put('app_build', (string) $app['app_build']);
+        }
         Setting::put('registration_open', $request->boolean('registration_open') ? '1' : '0');
         return back()->with('ok', 'Settings saved.');
     }

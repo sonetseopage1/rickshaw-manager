@@ -195,6 +195,18 @@ class SyncTest extends TestCase
         $this->post("/admin/garages/{$garage->id}/payment", ['plan_id' => $plan->id, 'months' => 2, 'amount' => 600, 'method' => 'bkash'])->assertSessionHasNoErrors();
         $garage->refresh();
         $this->assertSame('active', $garage->status());
+        // app update: super admin uploads an APK and the app settings expose it
+        $apk = \Illuminate\Http\UploadedFile::fake()->create('app-debug.apk', 50);
+        $this->put('/admin/settings', [
+            'trial_days' => 14, 'currency' => '৳', 'registration_open' => 1,
+            'app_build' => 7, 'app_min_build' => 3, 'app_notes' => 'New register', 'apk' => $apk,
+        ])->assertSessionHasNoErrors();
+        $token = $this->postJson('/api/auth/login', ['login' => 'admin1', 'password' => 'secret12'])->assertOk();
+        $token->assertJsonPath('settings.app_build', 7)->assertJsonPath('settings.app_min_build', 3);
+        $this->assertStringContainsString('rickshaw-manager-7.apk', $token->json('settings.app_apk_url'));
+        $this->assertFileExists(public_path('downloads/rickshaw-manager-7.apk'));
+        @unlink(public_path('downloads/rickshaw-manager-7.apk'));
+
         $this->post("/admin/garages/{$garage->id}/block", ['reason' => 'x'])->assertSessionHasNoErrors();
         $this->assertSame('blocked', $garage->fresh()->status());
 
