@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offline Sync Demo</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: sans-serif; margin: 0; padding: 16px; background: #f4f4f4; }
+  h3 { margin: 0 0 8px; }
+  #status { display: inline-block; padding: 4px 10px; border-radius: 12px; color: #fff; font-size: 13px; }
+  .on { background: #2e9e4f; } .off { background: #c0392b; }
+  input { width: 100%; padding: 10px; margin: 4px 0; font-size: 16px; }
+  button { padding: 12px; font-size: 16px; width: 100%; margin: 4px 0; }
+  .card { background: #fff; padding: 10px; margin: 6px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .pend { color: #e67e22; font-size: 12px; } .done { color: #2e9e4f; font-size: 12px; }
+  .del { width: auto; padding: 6px 10px; font-size: 14px; }
+  small { color: #666; }
+</style>
+</head>
+<body>
+<h3>Offline Sync Demo</h3>
+<span id="status" class="off">Offline</span>
+<small id="last"></small>
+<input id="url" placeholder="https://yoursite.com/sync.php">
+<input id="title" placeholder="Title (e.g. Rickshaw 1 jama)">
+<input id="amount" type="number" placeholder="Amount">
+<button id="add">Add (saves locally)</button>
+<button id="sync">Sync now</button>
+<div id="list"></div>
+<script>
+const LS = (k, v) => { try { if (v === undefined) return JSON.parse(localStorage.getItem(k)); localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+let items = LS('items') || {};
+let lastSync = LS('lastSync') || 0;
+let syncing = false;
+const $ = id => document.getElementById(id);
+$('url').value = LS('url') || '';
+$('url').onchange = () => LS('url', $('url').value.trim());
+
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(16).slice(2));
+const save = () => { LS('items', items); render(); };
+
+function render() {
+  const rows = Object.values(items).filter(i => !i.deleted).sort((a, b) => b.updated_at - a.updated_at);
+  $('list').innerHTML = rows.map(i => `
+    <div class="card"><div><b>${i.title}</b> — ${i.amount}<br>
+    <span class="${i.dirty ? 'pend' : 'done'}">${i.dirty ? 'Pending sync' : 'Synced'}</span></div>
+    <button class="del" onclick="del('${i.id}')">Delete</button></div>`).join('');
+  $('last').textContent = lastSync ? '  Last sync: ' + new Date(lastSync).toLocaleTimeString() : '  Never synced';
+  const on = navigator.onLine;
+  $('status').textContent = on ? 'Online' : 'Offline';
+  $('status').className = on ? 'on' : 'off';
+}
+
+$('add').onclick = () => {
+  const title = $('title').value.trim();
+  if (!title) return;
+  const id = uuid();
+  items[id] = { id, title, amount: Number($('amount').value) || 0, updated_at: Date.now(), deleted: false, dirty: true };
+  $('title').value = ''; $('amount').value = '';
+  save(); sync();
+};
+window.del = id => { items[id].deleted = true; items[id].updated_at = Date.now(); items[id].dirty = true; save(); sync(); };
+
+async function post(url, body) {
+  const N = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.CapacitorHttp;
+  if (N) {
+    const r = await N.post({ url, headers: { 'Content-Type': 'application/json' }, data: body });
+    return typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+  }
+  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  return r.json();
+}
+
+async function sync() {
+  const url = ($('url').value || '').trim();
+  if (syncing || !url || !navigator.onLine) return render();
+  syncing = true;
+  try {
+    const dirty = Object.values(items).filter(i => i.dirty);
+    const sentAt = {}; dirty.forEach(i => sentAt[i.id] = i.updated_at);
+    const res = await post(url, { since: lastSync, items: dirty.map(({ dirty, ...rest }) => rest) });
+    if (!res || !res.ok) throw new Error('bad response');
+    dirty.forEach(i => { if (items[i.id].updated_at === sentAt[i.id]) items[i.id].dirty = false; });
+    res.changes.forEach(c => {
+      const l = items[c.id];
+      if (!l || (!l.dirty && c.updated_at >= l.updated_at) || (l.dirty && c.updated_at > l.updated_at)) {
+        items[c.id] = { ...c, dirty: false };
+      }
+    });
+    lastSync = res.server_time; LS('lastSync', lastSync);
+  } catch (e) { /* stay pending, retry later */ }
+  syncing = false; save();
+}
+$('sync').onclick = sync;
+window.addEventListener('online', sync);
+window.addEventListener('offline', render);
+setInterval(sync, 15000);
+render(); sync();
+</script>
+</body>
+</html>
