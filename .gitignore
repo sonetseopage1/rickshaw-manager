@@ -1,2 +1,13 @@
 node_modules/
 app/android/
+backend/vendor/
+backend/.env
+backend/public/app/
+backend/storage/logs/*.log
+backend/storage/app/installed.lock
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/storage/framework/cache/data/*
+backend/bootstrap/cache/*.php
+deploy-secrets/
+*.log

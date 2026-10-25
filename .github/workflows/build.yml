@@ -1,9 +1,12 @@
-name: Build APK
+name: Build
+
 on:
   push:
   workflow_dispatch:
+
 jobs:
-  build:
+  # ---------------------------------------------------------------- Android APK
+  android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,16 +17,68 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - name: Install and add Android platform
+
+      - name: Install dependencies and create the Android project
         working-directory: app
         run: |
           npm install
           npx cap add android
+          npx @capacitor/assets generate --android
           npx cap sync android
-      - name: Build debug APK
+
+      # The same signing key every time, so a new APK installs over the old one.
+      - name: Use the fixed debug keystore
+        run: |
+          mkdir -p ~/.android
+          cp app/debug.keystore ~/.android/debug.keystore
+
+      - name: Set the version code
+        working-directory: app/android/app
+        run: |
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/" build.gradle
+          sed -i "s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/" build.gradle
+
+      - name: Build the APK
         working-directory: app/android
         run: ./gradlew assembleDebug
+
       - uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk
+          name: rickshaw-manager-apk
           path: app/android/app/build/outputs/apk/debug/app-debug.apk
+
+  # ------------------------------------------------- Laravel server (cPanel zip)
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, fileinfo, pdo_sqlite, sqlite3
+          tools: composer
+
+      - name: Install and test
+        working-directory: backend
+        run: |
+          composer install --no-interaction --prefer-dist
+          cp .env.example .env
+          php artisan key:generate
+          php artisan test
+
+      - name: Production build
+        working-directory: backend
+        run: |
+          rm -f .env
+          composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+          rm -rf public/app tests
+          mkdir -p public/app
+          cp -r ../app/www/* public/app/
+          rm -f storage/logs/*.log
+          mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/app/public bootstrap/cache
+          zip -r ../rickshaw-backend.zip . -x ".git*" "storage/framework/cache/data/*" "storage/framework/sessions/*" "storage/framework/views/*"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rickshaw-backend
+          path: rickshaw-backend.zip

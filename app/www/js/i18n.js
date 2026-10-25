@@ -1,0 +1,261 @@
+// Bangla (default) and English texts.
+(function () {
+  var RM = window.RM;
+
+  var bn = {
+    'app.name': 'রিকশা ম্যানেজার',
+    'common.close': 'বন্ধ', 'common.cancel': 'বাতিল', 'common.ok': 'ঠিক আছে', 'common.save': 'সংরক্ষণ',
+    'common.delete': 'মুছুন', 'common.saved': 'সংরক্ষিত হয়েছে', 'common.deleted': 'মুছে ফেলা হয়েছে',
+    'common.choose': 'বেছে নিন', 'common.all': 'সব', 'common.today': 'আজ', 'common.prev': 'আগের', 'common.next': 'পরের',
+    'common.loading': 'অপেক্ষা করুন…', 'common.required': 'আবশ্যক', 'common.yes': 'হ্যাঁ', 'common.no': 'না',
+    'common.copied': 'কপি হয়েছে', 'common.thisMonth': 'এই মাস',
+
+    'nav.home': 'আজ', 'nav.entries': 'হিসাব', 'nav.assign': 'বরাদ্দ', 'nav.reports': 'রিপোর্ট', 'nav.more': 'আরও',
+    'title.setup': 'সেটআপ', 'title.expenses': 'গ্যারেজ খরচ', 'title.logs': 'কার্যকলাপ লগ', 'title.settings': 'সেটিংস',
+
+    'auth.tagline': 'গ্যারেজের সব হিসাব, এক জায়গায়',
+    'auth.signIn': 'লগইন', 'auth.signUp': 'নতুন গ্যারেজ', 'auth.login': 'ফোন বা ইউজারনেম',
+    'auth.loginHint': 'কমপক্ষে ৪ অক্ষর। এটি দিয়েই লগইন করবেন।', 'auth.password': 'পাসওয়ার্ড', 'auth.passwordHint': 'কমপক্ষে ৬ অক্ষর',
+    'auth.garageName': 'গ্যারেজের নাম', 'auth.yourName': 'আপনার নাম', 'auth.createGarage': 'গ্যারেজ খুলুন',
+    'auth.trialNote': 'বিনামূল্যে ট্রায়াল দিয়ে শুরু করুন। কার্ড লাগবে না।',
+    'auth.offline': 'ইন্টারনেট নেই। প্রথমবার লগইনের জন্য ইন্টারনেট লাগবে।', 'auth.wrong': 'ইউজারনেম বা পাসওয়ার্ড ভুল।',
+    'auth.blocked': 'আপনার অ্যাকাউন্ট বন্ধ করা আছে।', 'auth.closed': 'এখন নতুন নিবন্ধন বন্ধ আছে।',
+    'auth.taken': 'এই ইউজারনেম আগে থেকেই আছে।', 'auth.fillAll': 'সব ঘর সঠিকভাবে পূরণ করুন।', 'auth.tooMany': 'অনেকবার চেষ্টা হয়েছে, একটু পরে আবার দেখুন।',
+
+    'home.net': 'নিট লাভ', 'home.welcome': 'স্বাগতম!', 'home.welcomeText': 'শুরু করতে এই ধাপগুলো শেষ করুন।',
+    'home.stepOwner': 'রিকশার মালিক যোগ করুন (আপনি নিজেও মালিক হতে পারেন)', 'home.stepRickshaw': 'রিকশা যোগ করুন',
+    'home.stepDriver': 'চালক যোগ করুন', 'home.stepAssign': 'চালককে রিকশা বরাদ্দ দিন',
+    'home.startSetup': 'সেটআপ শুরু করুন', 'home.askAdmin': 'অ্যাডমিনকে রিকশা যোগ করতে বলুন।',
+    'home.f_all': 'সব', 'home.f_free': 'ফাঁকা', 'home.f_occupied': 'চলছে', 'home.f_maintenance': 'মেরামত',
+    'home.s_free': 'ফাঁকা', 'home.s_occupied': 'চলছে', 'home.s_maintenance': 'মেরামত', 'home.s_inactive': 'বন্ধ',
+    'home.noDriver': 'চালক নেই', 'home.expected': 'প্রত্যাশিত', 'home.due': 'বাকি', 'home.assignDriver': 'চালক দিন',
+    'home.addEntry': 'হিসাব', 'home.nothing': 'এই তালিকায় কিছু নেই',
+
+    'entry.new': 'নতুন হিসাব', 'entry.edit': 'হিসাব সম্পাদনা', 'entry.rickshaw': 'রিকশা', 'entry.date': 'তারিখ',
+    'entry.driver': 'চালক', 'entry.noDriver': '— কেউ নয় —', 'entry.deposit': 'জমা', 'entry.expense': 'খরচ',
+    'entry.charge': 'গ্যারেজ চার্জ', 'entry.net': 'নিট', 'entry.expenseType': 'খরচের ধরন', 'entry.note': 'মন্তব্য',
+    'entry.takenTime': 'গাড়ি নেওয়ার সময়', 'entry.depositTime': 'জমা দেওয়ার সময়', 'entry.moreOptions': 'সময় ও মন্তব্য যোগ করুন',
+    'entry.lessOptions': 'কম দেখান', 'entry.needRickshaw': 'রিকশা ও তারিখ বেছে নিন।',
+    'entry.dup': 'এই রিকশার এই তারিখে আগেই একটি হিসাব আছে। নতুন যোগ করলে দুটি থাকবে।',
+    'entry.deleteAsk': 'এই হিসাবটি মুছে ফেলবেন?', 'entry.useExpected': 'প্রত্যাশিত জমা বসান',
+
+    'exp.maintenance': 'রক্ষণাবেক্ষণ', 'exp.repair': 'মেরামত', 'exp.battery': 'ব্যাটারি/চার্জ', 'exp.other': 'অন্যান্য',
+    'exp.category': 'খরচের খাত', 'exp.amount': 'টাকার পরিমাণ', 'exp.new': 'নতুন খরচ', 'exp.edit': 'খরচ সম্পাদনা',
+    'exp.deleteAsk': 'এই খরচটি মুছে ফেলবেন?', 'exp.monthTotal': 'এ মাসের মোট খরচ', 'exp.garageIncome': 'গ্যারেজ আয় (চার্জ)',
+    'exp.garageProfit': 'গ্যারেজের লাভ', 'exp.total': 'মোট', 'exp.none': 'এ মাসে কোনো খরচ নেই',
+    'cat.rent': 'গ্যারেজ ভাড়া', 'cat.electricity': 'বিদ্যুৎ বিল', 'cat.tools': 'যন্ত্রপাতি', 'cat.security': 'নিরাপত্তা',
+    'cat.salary': 'বেতন', 'cat.other': 'অন্যান্য',
+    'status.active': 'সচল', 'status.maintenance': 'মেরামতে', 'status.inactive': 'বন্ধ',
+
+    'period.today': 'আজ', 'period.yesterday': 'গতকাল', 'period.week': 'এই সপ্তাহ', 'period.month': 'এই মাস',
+    'period.lastmonth': 'গত মাস', 'period.30': '৩০ দিন', 'period.year': 'এ বছর', 'period.custom': 'বেছে নিন',
+    'period.from': 'শুরু', 'period.to': 'শেষ',
+
+    'entries.filter': 'ফিল্টার', 'entries.clear': 'মুছুন', 'entries.owner': 'মালিক', 'entries.none': 'এই সময়ে কোনো হিসাব নেই',
+
+    'assign.new': 'নতুন বরাদ্দ', 'assign.edit': 'বরাদ্দ সম্পাদনা', 'assign.needAll': 'রিকশা, চালক ও শুরুর তারিখ দিন।',
+    'assign.badDates': 'শেষের তারিখ শুরুর আগে হতে পারে না।',
+    'assign.clash': 'এই সময়ে রিকশাটি আগেই {driver}-কে দেওয়া আছে ({from} → {to})।', 'assign.ongoing': 'চলমান',
+    'assign.driverBusy': 'এই চালক এই সময়ে আগেই রিকশা {rickshaw}-এ বরাদ্দ আছেন। তবুও রাখবেন?', 'assign.keep': 'হ্যাঁ, রাখুন',
+    'assign.deleteAsk': 'এই বরাদ্দ মুছে ফেলবেন?', 'assign.from': 'শুরুর তারিখ', 'assign.to': 'শেষের তারিখ', 'assign.noEnd': 'শেষ তারিখ নেই (চলমান)',
+    'assign.expectedRent': 'প্রত্যাশিত জমা (প্রতিদিন)', 'assign.defaultIs': 'রিকশার ডিফল্ট', 'assign.board': 'আজকের বরাদ্দ',
+    'assign.noRickshaw': 'আগে রিকশা যোগ করুন', 'assign.all': 'সব বরাদ্দ', 'assign.showCurrent': 'চলমান দেখুন', 'assign.showPast': 'শেষ হওয়াগুলো',
+    'assign.none': 'কোনো বরাদ্দ নেই', 'assign.end': 'শেষ', 'assign.endAsk': 'বরাদ্দ {date} পর্যন্ত থাকবে। এর পরের দিন থেকে রিকশা ফাঁকা হবে।',
+    'assign.endNow': 'শেষ করুন',
+
+    'setup.tab_rickshaws': 'রিকশা', 'setup.tab_drivers': 'চালক', 'setup.tab_owners': 'মালিক', 'setup.tab_staff': 'ম্যানেজার',
+    'setup.noOwner': '— মালিক নেই —', 'setup.rNumber': 'রিকশার নম্বর/নাম', 'setup.owner': 'মালিক',
+    'setup.defRent': 'প্রতিদিনের প্রত্যাশিত জমা', 'setup.defRentHint': 'চালকের কাছ থেকে সাধারণত যত টাকা আসে',
+    'setup.defCharge': 'প্রতিদিনের গ্যারেজ চার্জ', 'setup.defChargeHint': 'হিসাবে নিজে থেকে বসে যাবে', 'setup.status': 'অবস্থা',
+    'setup.name': 'নাম', 'setup.phone': 'ফোন', 'setup.nid': 'এনআইডি / লাইসেন্স', 'setup.address': 'ঠিকানা', 'setup.active': 'সক্রিয়',
+    'setup.inactive': 'নিষ্ক্রিয়', 'setup.new_rickshaw': 'নতুন রিকশা', 'setup.edit_rickshaw': 'রিকশা সম্পাদনা',
+    'setup.new_driver': 'নতুন চালক', 'setup.edit_driver': 'চালক সম্পাদনা', 'setup.new_owner': 'নতুন মালিক', 'setup.edit_owner': 'মালিক সম্পাদনা',
+    'setup.new_staff': 'নতুন ব্যবহারকারী', 'setup.edit_staff': 'ব্যবহারকারী সম্পাদনা',
+    'setup.selfAdded': 'আপনাকে মালিক হিসেবে যোগ করা হয়েছে', 'setup.dupRickshaw': 'এই নম্বরের রিকশা আগেই আছে।',
+    'setup.deleteAsk_rickshaw': 'রিকশাটি মুছবেন? আগের হিসাবগুলো থেকে যাবে।', 'setup.deleteAsk_driver': 'চালককে মুছবেন? আগের হিসাবগুলো থেকে যাবে।',
+    'setup.deleteAsk_owner': 'মালিককে মুছবেন?', 'setup.noRickshaws': 'এখনো কোনো রিকশা নেই', 'setup.noDrivers': 'এখনো কোনো চালক নেই',
+    'setup.noOwners': 'এখনো কোনো মালিক নেই', 'setup.rent': 'জমা', 'setup.addSelf': 'আমি নিজেও মালিক', 'setup.me': 'আমি',
+    'setup.rickshawsCount': 'টি রিকশা',
+    'staff.loginFixed': 'লগইন নাম বদলানো যায় না', 'staff.newPassword': 'নতুন পাসওয়ার্ড (বদলাতে চাইলে)', 'staff.role': 'ভূমিকা',
+    'staff.blocked': 'বন্ধ', 'staff.needOnline': 'এটির জন্য ইন্টারনেট লাগবে।', 'staff.loginTaken': 'এই ইউজারনেম আগে থেকেই আছে।',
+    'staff.lastAdmin': 'কমপক্ষে একজন সক্রিয় অ্যাডমিন থাকতে হবে।', 'staff.planLimit': 'আপনার প্যাকেজের ব্যবহারকারী সীমা শেষ।',
+    'staff.deleteAsk': '{name}-কে মুছে ফেলবেন?',
+    'role.admin': 'অ্যাডমিন', 'role.manager': 'ম্যানেজার',
+
+    'reports.days': 'দিন', 'reports.noOwner': 'মালিক ছাড়া', 'reports.share': 'পাঠান', 'reports.tab_overview': 'সারসংক্ষেপ',
+    'reports.tab_rickshaws': 'রিকশা', 'reports.tab_owners': 'মালিক', 'reports.tab_drivers': 'চালক',
+    'reports.garagePL': 'গ্যারেজের আয়-ব্যয়', 'reports.utility': 'গ্যারেজের খরচ', 'reports.perMonth': 'মাস অনুযায়ী', 'reports.perDay': 'দিন অনুযায়ী',
+    'reports.needMoreDays': 'চার্ট দেখতে একাধিক দিন বেছে নিন', 'reports.noData': 'এই সময়ে কোনো তথ্য নেই',
+    'reports.expenseTypes': 'রিকশার খরচের ধরন', 'reports.netByRickshaw': 'রিকশা অনুযায়ী নিট লাভ', 'reports.depositByDriver': 'চালক অনুযায়ী জমা',
+    'reports.ownerShare': 'মালিকের প্রাপ্য (নিট)',
+
+    'more.setup': 'সেটআপ', 'more.setupDesc': 'রিকশা, চালক, মালিক ও ম্যানেজার', 'more.expenses': 'গ্যারেজ খরচ',
+    'more.expensesDesc': 'ভাড়া, বিদ্যুৎ, যন্ত্রপাতি, নিরাপত্তা…', 'more.logs': 'কার্যকলাপ লগ', 'more.logsDesc': 'কে কখন কী যোগ বা বদলেছে',
+    'more.settings': 'সেটিংস', 'more.settingsDesc': 'ভাষা, পাসওয়ার্ড, সিঙ্ক',
+
+    'sub.title': 'সাবস্ক্রিপশন', 'sub.active': 'সক্রিয়', 'sub.trial': 'ট্রায়াল', 'sub.expired': 'মেয়াদ শেষ', 'sub.blocked': 'বন্ধ',
+    'sub.plan': 'প্যাকেজ', 'sub.trialPlan': 'ফ্রি ট্রায়াল', 'sub.ends': 'মেয়াদ শেষ', 'sub.daysLeft': 'বাকি দিন', 'sub.limits': 'সীমা',
+    'sub.users': 'ব্যবহারকারী', 'sub.expiredText': 'মেয়াদ শেষ। নতুন তথ্য ফোনে জমা থাকবে, নবায়নের পর সিঙ্ক হবে।', 'sub.contact': 'নবায়নের জন্য যোগাযোগ',
+
+    'logs.needOnline': 'লগ দেখতে ইন্টারনেট লাগবে।', 'logs.none': 'এখনো কোনো কার্যকলাপ নেই', 'logs.more': 'আরও দেখুন',
+    'logs.create': 'যোগ করেছেন', 'logs.update': 'পরিবর্তন করেছেন', 'logs.delete': 'মুছেছেন',
+    'ent.entries': 'হিসাব', 'ent.assignments': 'বরাদ্দ', 'ent.rickshaws': 'রিকশা', 'ent.drivers': 'চালক', 'ent.owners': 'মালিক', 'ent.garage_expenses': 'গ্যারেজ খরচ',
+    'field.number': 'নম্বর', 'field.owner_id': 'মালিক', 'field.default_rent': 'প্রত্যাশিত জমা', 'field.default_charge': 'গ্যারেজ চার্জ',
+    'field.status': 'অবস্থা', 'field.note': 'মন্তব্য', 'field.name': 'নাম', 'field.phone': 'ফোন', 'field.address': 'ঠিকানা',
+    'field.is_self': 'নিজে মালিক', 'field.nid': 'এনআইডি', 'field.is_active': 'সক্রিয়', 'field.rickshaw_id': 'রিকশা', 'field.driver_id': 'চালক',
+    'field.start_date': 'শুরু', 'field.end_date': 'শেষ', 'field.expected_rent': 'প্রত্যাশিত জমা', 'field.entry_date': 'তারিখ',
+    'field.deposit': 'জমা', 'field.expense': 'খরচ', 'field.expense_type': 'খরচের ধরন', 'field.garage_charge': 'গ্যারেজ চার্জ',
+    'field.taken_time': 'নেওয়ার সময়', 'field.deposit_time': 'জমার সময়', 'field.category': 'খাত', 'field.amount': 'টাকা', 'field.expense_date': 'তারিখ',
+
+    'settings.language': 'ভাষা', 'settings.account': 'অ্যাকাউন্ট', 'settings.changePassword': 'পাসওয়ার্ড বদলান', 'settings.garageInfo': 'গ্যারেজের তথ্য',
+    'settings.sync': 'সিঙ্ক', 'settings.server': 'সার্ভার', 'settings.logout': 'লগআউট', 'settings.logoutAsk': 'লগআউট করবেন?',
+    'settings.logoutPending': 'এখনো {n}টি পরিবর্তন সিঙ্ক হয়নি। লগআউট করলেও ফোনে থাকবে, আবার লগইন করে ইন্টারনেট থাকলে সিঙ্ক হবে। লগআউট করবেন?',
+    'settings.edit_name': 'নাম বদলান', 'settings.edit_password': 'পাসওয়ার্ড বদলান', 'settings.edit_garage': 'গ্যারেজের তথ্য',
+    'settings.currentPassword': 'বর্তমান পাসওয়ার্ড', 'settings.newPassword': 'নতুন পাসওয়ার্ড', 'settings.garageName': 'গ্যারেজের নাম',
+    'settings.wrongPassword': 'বর্তমান পাসওয়ার্ড ভুল।',
+    'sync.syncing': 'সিঙ্ক হচ্ছে…', 'sync.offline': 'ইন্টারনেট নেই, তথ্য ফোনে জমা আছে', 'sync.expired': 'মেয়াদ শেষ, সিঙ্ক বন্ধ',
+    'sync.error': 'সিঙ্ক হয়নি', 'sync.pending': '{n}টি পরিবর্তন সিঙ্কের অপেক্ষায়', 'sync.ok': 'সব তথ্য সিঙ্ক হয়েছে',
+    'sync.last': 'শেষ সিঙ্ক', 'sync.now': 'এখনই সিঙ্ক করুন',
+
+    'banner.trial': 'ফ্রি ট্রায়ালের আর {n} দিন বাকি', 'banner.trialLast': 'ফ্রি ট্রায়ালের মেয়াদ আজ শেষ হচ্ছে',
+    'banner.expired': 'মেয়াদ শেষ। নতুন তথ্য ফোনে জমা থাকবে, নবায়নের পর সিঙ্ক হবে।', 'banner.soon': 'সাবস্ক্রিপশনের আর {n} দিন বাকি',
+    'banner.dropped': 'কিছু পরিবর্তন অনুমোদিত নয়, তাই বাতিল হয়েছে।', 'banner.planLimit': 'প্যাকেজের রিকশা সীমা শেষ, রিকশাটি যোগ হয়নি।',
+    'blocked.title': 'অ্যাক্সেস বন্ধ', 'blocked.text': 'আপনার অ্যাকাউন্ট বা গ্যারেজ বন্ধ করা হয়েছে। বিস্তারিত জানতে যোগাযোগ করুন।',
+    'boot.error': 'অ্যাপ চালু করা যায়নি। পেজটি রিফ্রেশ করুন।',
+  };
+
+  var en = {
+    'app.name': 'Rickshaw Manager',
+    'common.close': 'Close', 'common.cancel': 'Cancel', 'common.ok': 'OK', 'common.save': 'Save',
+    'common.delete': 'Delete', 'common.saved': 'Saved', 'common.deleted': 'Deleted',
+    'common.choose': 'Choose', 'common.all': 'All', 'common.today': 'Today', 'common.prev': 'Previous', 'common.next': 'Next',
+    'common.loading': 'Please wait…', 'common.required': 'Required', 'common.yes': 'Yes', 'common.no': 'No',
+    'common.copied': 'Copied', 'common.thisMonth': 'This month',
+
+    'nav.home': 'Today', 'nav.entries': 'Accounts', 'nav.assign': 'Assign', 'nav.reports': 'Reports', 'nav.more': 'More',
+    'title.setup': 'Setup', 'title.expenses': 'Garage costs', 'title.logs': 'Activity log', 'title.settings': 'Settings',
+
+    'auth.tagline': 'All your garage accounts in one place',
+    'auth.signIn': 'Sign in', 'auth.signUp': 'New garage', 'auth.login': 'Phone or username',
+    'auth.loginHint': 'At least 4 characters. You will sign in with it.', 'auth.password': 'Password', 'auth.passwordHint': 'At least 6 characters',
+    'auth.garageName': 'Garage name', 'auth.yourName': 'Your name', 'auth.createGarage': 'Open garage',
+    'auth.trialNote': 'Start with a free trial. No card needed.',
+    'auth.offline': 'No internet. The first sign-in needs internet.', 'auth.wrong': 'Wrong username or password.',
+    'auth.blocked': 'Your account is blocked.', 'auth.closed': 'New sign-ups are closed right now.',
+    'auth.taken': 'This username is already taken.', 'auth.fillAll': 'Please fill in all fields correctly.', 'auth.tooMany': 'Too many attempts, try again shortly.',
+
+    'home.net': 'Net profit', 'home.welcome': 'Welcome!', 'home.welcomeText': 'Complete these steps to get started.',
+    'home.stepOwner': 'Add rickshaw owners (you can be an owner too)', 'home.stepRickshaw': 'Add rickshaws',
+    'home.stepDriver': 'Add drivers', 'home.stepAssign': 'Assign rickshaws to drivers',
+    'home.startSetup': 'Start setup', 'home.askAdmin': 'Ask the admin to add rickshaws.',
+    'home.f_all': 'All', 'home.f_free': 'Free', 'home.f_occupied': 'Running', 'home.f_maintenance': 'Repair',
+    'home.s_free': 'Free', 'home.s_occupied': 'Running', 'home.s_maintenance': 'Repair', 'home.s_inactive': 'Off',
+    'home.noDriver': 'No driver', 'home.expected': 'Expected', 'home.due': 'Due', 'home.assignDriver': 'Assign',
+    'home.addEntry': 'Entry', 'home.nothing': 'Nothing in this list',
+
+    'entry.new': 'New entry', 'entry.edit': 'Edit entry', 'entry.rickshaw': 'Rickshaw', 'entry.date': 'Date',
+    'entry.driver': 'Driver', 'entry.noDriver': '— None —', 'entry.deposit': 'Deposit', 'entry.expense': 'Expense',
+    'entry.charge': 'Garage charge', 'entry.net': 'Net', 'entry.expenseType': 'Expense type', 'entry.note': 'Note',
+    'entry.takenTime': 'Time taken', 'entry.depositTime': 'Time deposited', 'entry.moreOptions': 'Add times and note',
+    'entry.lessOptions': 'Show less', 'entry.needRickshaw': 'Choose a rickshaw and a date.',
+    'entry.dup': 'This rickshaw already has an entry on this date. Saving will add another.',
+    'entry.deleteAsk': 'Delete this entry?', 'entry.useExpected': 'Use expected deposit',
+
+    'exp.maintenance': 'Maintenance', 'exp.repair': 'Repair', 'exp.battery': 'Battery/charging', 'exp.other': 'Other',
+    'exp.category': 'Category', 'exp.amount': 'Amount', 'exp.new': 'New cost', 'exp.edit': 'Edit cost',
+    'exp.deleteAsk': 'Delete this cost?', 'exp.monthTotal': 'Costs this month', 'exp.garageIncome': 'Garage income (charges)',
+    'exp.garageProfit': 'Garage profit', 'exp.total': 'Total', 'exp.none': 'No costs this month',
+    'cat.rent': 'Garage rent', 'cat.electricity': 'Electricity bill', 'cat.tools': 'Tools & equipment', 'cat.security': 'Security',
+    'cat.salary': 'Salary', 'cat.other': 'Other',
+    'status.active': 'Active', 'status.maintenance': 'In repair', 'status.inactive': 'Off',
+
+    'period.today': 'Today', 'period.yesterday': 'Yesterday', 'period.week': 'This week', 'period.month': 'This month',
+    'period.lastmonth': 'Last month', 'period.30': '30 days', 'period.year': 'This year', 'period.custom': 'Custom',
+    'period.from': 'From', 'period.to': 'To',
+
+    'entries.filter': 'Filter', 'entries.clear': 'Clear', 'entries.owner': 'Owner', 'entries.none': 'No entries in this period',
+
+    'assign.new': 'New assignment', 'assign.edit': 'Edit assignment', 'assign.needAll': 'Choose rickshaw, driver and start date.',
+    'assign.badDates': 'End date cannot be before the start date.',
+    'assign.clash': 'This rickshaw is already assigned to {driver} in this period ({from} → {to}).', 'assign.ongoing': 'ongoing',
+    'assign.driverBusy': 'This driver is already assigned to rickshaw {rickshaw} in this period. Keep anyway?', 'assign.keep': 'Yes, keep',
+    'assign.deleteAsk': 'Delete this assignment?', 'assign.from': 'Start date', 'assign.to': 'End date', 'assign.noEnd': 'No end date (ongoing)',
+    'assign.expectedRent': 'Expected deposit (per day)', 'assign.defaultIs': 'Rickshaw default', 'assign.board': 'Assignments on this day',
+    'assign.noRickshaw': 'Add rickshaws first', 'assign.all': 'All assignments', 'assign.showCurrent': 'Show current', 'assign.showPast': 'Show ended',
+    'assign.none': 'No assignments', 'assign.end': 'End', 'assign.endAsk': 'The assignment will last until {date}. The rickshaw is free after that.',
+    'assign.endNow': 'End it',
+
+    'setup.tab_rickshaws': 'Rickshaws', 'setup.tab_drivers': 'Drivers', 'setup.tab_owners': 'Owners', 'setup.tab_staff': 'Managers',
+    'setup.noOwner': '— No owner —', 'setup.rNumber': 'Rickshaw number/name', 'setup.owner': 'Owner',
+    'setup.defRent': 'Expected daily deposit', 'setup.defRentHint': 'What the driver usually pays per day',
+    'setup.defCharge': 'Daily garage charge', 'setup.defChargeHint': 'Filled into entries automatically', 'setup.status': 'Status',
+    'setup.name': 'Name', 'setup.phone': 'Phone', 'setup.nid': 'NID / licence', 'setup.address': 'Address', 'setup.active': 'Active',
+    'setup.inactive': 'Inactive', 'setup.new_rickshaw': 'New rickshaw', 'setup.edit_rickshaw': 'Edit rickshaw',
+    'setup.new_driver': 'New driver', 'setup.edit_driver': 'Edit driver', 'setup.new_owner': 'New owner', 'setup.edit_owner': 'Edit owner',
+    'setup.new_staff': 'New user', 'setup.edit_staff': 'Edit user',
+    'setup.selfAdded': 'You were added as an owner', 'setup.dupRickshaw': 'A rickshaw with this number already exists.',
+    'setup.deleteAsk_rickshaw': 'Delete this rickshaw? Past entries are kept.', 'setup.deleteAsk_driver': 'Delete this driver? Past entries are kept.',
+    'setup.deleteAsk_owner': 'Delete this owner?', 'setup.noRickshaws': 'No rickshaws yet', 'setup.noDrivers': 'No drivers yet',
+    'setup.noOwners': 'No owners yet', 'setup.rent': 'Deposit', 'setup.addSelf': 'I am an owner too', 'setup.me': 'Me',
+    'setup.rickshawsCount': 'rickshaws',
+    'staff.loginFixed': 'The login cannot be changed', 'staff.newPassword': 'New password (to change it)', 'staff.role': 'Role',
+    'staff.blocked': 'Blocked', 'staff.needOnline': 'This needs an internet connection.', 'staff.loginTaken': 'This username is already taken.',
+    'staff.lastAdmin': 'At least one active admin is required.', 'staff.planLimit': 'Your plan\'s user limit is reached.',
+    'staff.deleteAsk': 'Delete {name}?',
+    'role.admin': 'Admin', 'role.manager': 'Manager',
+
+    'reports.days': 'days', 'reports.noOwner': 'No owner', 'reports.share': 'Share', 'reports.tab_overview': 'Overview',
+    'reports.tab_rickshaws': 'Rickshaws', 'reports.tab_owners': 'Owners', 'reports.tab_drivers': 'Drivers',
+    'reports.garagePL': 'Garage income & costs', 'reports.utility': 'Garage costs', 'reports.perMonth': 'By month', 'reports.perDay': 'By day',
+    'reports.needMoreDays': 'Choose more than one day to see the chart', 'reports.noData': 'No data in this period',
+    'reports.expenseTypes': 'Rickshaw expense types', 'reports.netByRickshaw': 'Net profit by rickshaw', 'reports.depositByDriver': 'Deposits by driver',
+    'reports.ownerShare': 'Owner\'s share (net)',
+
+    'more.setup': 'Setup', 'more.setupDesc': 'Rickshaws, drivers, owners and managers', 'more.expenses': 'Garage costs',
+    'more.expensesDesc': 'Rent, electricity, tools, security…', 'more.logs': 'Activity log', 'more.logsDesc': 'Who added or changed what, and when',
+    'more.settings': 'Settings', 'more.settingsDesc': 'Language, password, sync',
+
+    'sub.title': 'Subscription', 'sub.active': 'Active', 'sub.trial': 'Trial', 'sub.expired': 'Expired', 'sub.blocked': 'Blocked',
+    'sub.plan': 'Plan', 'sub.trialPlan': 'Free trial', 'sub.ends': 'Valid until', 'sub.daysLeft': 'Days left', 'sub.limits': 'Limits',
+    'sub.users': 'users', 'sub.expiredText': 'Expired. New data stays on the phone and syncs after renewal.', 'sub.contact': 'To renew, contact',
+
+    'logs.needOnline': 'The log needs an internet connection.', 'logs.none': 'No activity yet', 'logs.more': 'Show more',
+    'logs.create': 'added', 'logs.update': 'changed', 'logs.delete': 'deleted',
+    'ent.entries': 'Entry', 'ent.assignments': 'Assignment', 'ent.rickshaws': 'Rickshaw', 'ent.drivers': 'Driver', 'ent.owners': 'Owner', 'ent.garage_expenses': 'Garage cost',
+    'field.number': 'Number', 'field.owner_id': 'Owner', 'field.default_rent': 'Expected deposit', 'field.default_charge': 'Garage charge',
+    'field.status': 'Status', 'field.note': 'Note', 'field.name': 'Name', 'field.phone': 'Phone', 'field.address': 'Address',
+    'field.is_self': 'Self owner', 'field.nid': 'NID', 'field.is_active': 'Active', 'field.rickshaw_id': 'Rickshaw', 'field.driver_id': 'Driver',
+    'field.start_date': 'Start', 'field.end_date': 'End', 'field.expected_rent': 'Expected deposit', 'field.entry_date': 'Date',
+    'field.deposit': 'Deposit', 'field.expense': 'Expense', 'field.expense_type': 'Expense type', 'field.garage_charge': 'Garage charge',
+    'field.taken_time': 'Time taken', 'field.deposit_time': 'Time deposited', 'field.category': 'Category', 'field.amount': 'Amount', 'field.expense_date': 'Date',
+
+    'settings.language': 'Language', 'settings.account': 'Account', 'settings.changePassword': 'Change password', 'settings.garageInfo': 'Garage details',
+    'settings.sync': 'Sync', 'settings.server': 'Server', 'settings.logout': 'Log out', 'settings.logoutAsk': 'Log out?',
+    'settings.logoutPending': '{n} changes are not synced yet. They stay on the phone and sync when you sign in again with internet. Log out?',
+    'settings.edit_name': 'Change name', 'settings.edit_password': 'Change password', 'settings.edit_garage': 'Garage details',
+    'settings.currentPassword': 'Current password', 'settings.newPassword': 'New password', 'settings.garageName': 'Garage name',
+    'settings.wrongPassword': 'The current password is wrong.',
+    'sync.syncing': 'Syncing…', 'sync.offline': 'No internet, data is saved on the phone', 'sync.expired': 'Subscription expired, sync paused',
+    'sync.error': 'Sync failed', 'sync.pending': '{n} changes waiting to sync', 'sync.ok': 'Everything is synced',
+    'sync.last': 'Last sync', 'sync.now': 'Sync now',
+
+    'banner.trial': 'Free trial: {n} days left', 'banner.trialLast': 'Your free trial ends today',
+    'banner.expired': 'Expired. New data stays on the phone and syncs after renewal.', 'banner.soon': 'Subscription ends in {n} days',
+    'banner.dropped': 'Some changes were not allowed and were undone.', 'banner.planLimit': 'Your plan\'s rickshaw limit is reached, the rickshaw was not added.',
+    'blocked.title': 'Access blocked', 'blocked.text': 'Your account or garage has been blocked. Please get in touch for details.',
+    'boot.error': 'The app could not start. Please reload the page.',
+  };
+
+  var dict = { bn: bn, en: en };
+
+  function t(key, params) {
+    var s = (dict[RM.state.lang] || {})[key];
+    if (s === undefined) s = en[key];
+    if (s === undefined) s = key;
+    if (params) s = s.replace(/\{(\w+)\}/g, function (m, k) { return params[k] !== undefined ? params[k] : m; });
+    return s;
+  }
+
+  RM.t = t;
+  RM.i18n = dict;
+})();

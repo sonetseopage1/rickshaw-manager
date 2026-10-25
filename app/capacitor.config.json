@@ -1,5 +1,11 @@
 {
   "appId": "com.rickshaw.manager",
   "appName": "Rickshaw Manager",
-  "webDir": "www"
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
 }
