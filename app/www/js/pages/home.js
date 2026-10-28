@@ -24,7 +24,7 @@ RM.state.homePeriod = 'day';
     });
 
     app.component('page-home', {
-      data: function () { return { entrySheet: null, assignSheet: null, detail: null, expenseSheet: null, driverInfo: null }; },
+      data: function () { return { entrySheet: null, assignSheet: null, detail: null, expenseSheet: null, driverInfo: null, viewEntry: null }; },
       computed: {
         s: function () { return RM.state; },
         date: {
@@ -133,6 +133,12 @@ RM.state.homePeriod = 'day';
         },
       },
       methods: {
+        /** Staff open the entry form; an owner (read-only) looks at the day's entry or the driver. */
+        cardClick: function (c) {
+          if (RM.can('entries', 'create')) return this.open(c);
+          if (c.entries.length) this.viewEntry = c.entries[0];
+          else if (c.driver) this.driverInfo = c.driver;
+        },
         open: function (c) {
           this.entrySheet = { entry: c.entries.length === 1 ? c.entries[0] : null, rickshawId: c.r.id };
         },
@@ -207,7 +213,7 @@ RM.state.homePeriod = 'day';
         '{{ $t(\'home.f_\' + k) }} <b>{{ $n(counts[k]) }}</b></button></div>' +
 
         '<div class="rk-grid">' +
-        '<div v-for="c in shown" :key="c.r.id" class="rk" :class="[c.status, {done: c.done}]" @click="$can(\'entries\', \'create\') && open(c)">' +
+        '<div v-for="c in shown" :key="c.r.id" class="rk" :class="[c.status, {done: c.done}]" @click="cardClick(c)">' +
         '<div class="rk-top"><span class="rk-no">{{ c.r.number }}</span><span class="tag" :class="c.done ? \'done\' : c.status">{{ c.done ? $t(\'home.s_done\') : $t(\'home.s_\' + c.status) }}</span></div>' +
         '<div class="rk-owner" v-if="c.owner">{{ c.owner }}</div>' +
         '<div class="rk-driver" :class="{none: !c.driver, tap: $isOwner() && c.driver}" @click.stop="$isOwner() && c.driver && (driverInfo = c.driver)"><avatar v-if="c.driver" :id="c.driver.photo_id" :name="c.driver.name" :size="22"/><ic v-else name="user" :size="15"/> {{ c.driver ? c.driver.name : $t(\'home.noDriver\') }}</div>' +
@@ -229,6 +235,7 @@ RM.state.homePeriod = 'day';
         '</template>' +
 
         '<button v-if="cards.length && $can(\'entries\', \'create\')" class="fab" @click="entrySheet = {entry: null, rickshawId: \'\'}" :aria-label="$t(\'entry.new\')"><ic name="plus" :size="26"/></button>' +
+        '<entry-view v-if="viewEntry" :entry="viewEntry" @close="viewEntry = null"/>' +
         '<driver-info v-if="driverInfo" :driver="driverInfo" @close="driverInfo = null"/>' +
         '<detail-sheet v-if="detail" :kind="detail" :from="range[0]" :to="range[1]" @close="detail = null" @add="expenseSheet = {}" @edit="expenseSheet = $event"/>' +
         '<expense-sheet v-if="expenseSheet" :key="expenseSheet.id || \'new\'" :expense="expenseSheet.id ? expenseSheet : null" :date="date" @close="expenseSheet = null"/>' +

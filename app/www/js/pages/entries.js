@@ -30,7 +30,7 @@
     });
 
     app.component('page-entries', {
-      data: function () { return { sheet: null, showFilters: false }; },
+      data: function () { return { sheet: null, showFilters: false, viewEntry: null }; },
       computed: {
         f: function () { return RM.state.entFilter; },
         range: function () { return RM.periodRange(this.f.period, this.f.from, this.f.to); },
@@ -85,7 +85,7 @@
         '<empty v-if="!groups.length" icon="receipt" :text="$t(\'entries.none\')"/>' +
         '<section v-for="g in groups" :key="g.date" class="day-group">' +
         '<header><b>{{ $d(g.date, \'long\') }}</b><span :class="{neg: g.t.net < 0}">{{ $m(g.t.net) }}</span></header>' +
-        '<div v-for="e in g.items" :key="e.id" class="row-card" @click="$can(\'entries\', \'update\') && (sheet = e)">' +
+        '<div v-for="e in g.items" :key="e.id" class="row-card" @click="$can(\'entries\', \'update\') ? (sheet = e) : (viewEntry = e)">' +
         '<div class="rc-main"><b>{{ rn(e.rickshaw_id) }}</b><span class="muted">{{ dn(e.driver_id) || $t(\'entry.noDriver\') }}</span>' +
         '<small v-if="e.taken_time || e.deposit_time" class="muted"><ic name="clock" :size="12"/> {{ $time(e.taken_time) }}{{ e.taken_time && e.deposit_time ? \' → \' : \'\' }}{{ $time(e.deposit_time) }}</small>' +
         '<small v-if="e.note" class="muted note-line">{{ e.note }}</small></div>' +
@@ -96,6 +96,7 @@
         '<small :class="{neg: net(e) < 0}" class="c-net">= {{ $m(net(e)) }}</small></div></div></section>' +
 
         '<button v-if="$can(\'entries\', \'create\')" class="fab" @click="sheet = {}" :aria-label="$t(\'entry.new\')"><ic name="plus" :size="26"/></button>' +
+        '<entry-view v-if="viewEntry" :entry="viewEntry" @close="viewEntry = null"/>' +
         '<entry-sheet v-if="sheet" :entry="sheet.id ? sheet : null" :date="addDate()" @close="sheet = null"/>' +
         '</div>',
     });
