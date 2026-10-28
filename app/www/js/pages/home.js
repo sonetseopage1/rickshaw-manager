@@ -5,7 +5,7 @@
 
   RM.state.homeDate = U.today();
   RM.state.homeFilter = 'all';
-RM.state.homePeriod = 'month';
+RM.state.homePeriod = 'day';
 
   RM.installers.push(function (app) {
     app.component('date-nav', {
@@ -24,7 +24,7 @@ RM.state.homePeriod = 'month';
     });
 
     app.component('page-home', {
-      data: function () { return { entrySheet: null, assignSheet: null }; },
+      data: function () { return { entrySheet: null, assignSheet: null, detail: null }; },
       computed: {
         s: function () { return RM.state; },
         date: {
@@ -103,17 +103,20 @@ RM.state.homePeriod = 'month';
           get: function () { return RM.state.homePeriod; },
           set: function (v) { RM.state.homePeriod = v; },
         },
+        /** The summary covers the chosen day, or that day's whole month. */
+        range: function () {
+          var date = this.date;
+          return this.period === 'month' ? [U.monthStart(date), U.monthEnd(date)] : [date, date];
+        },
         /** Garage staff view: the garage's own earning (charges) minus its running costs. */
         gp: function () {
-          var date = this.date, from = date, to = date;
-          if (this.period === 'month') { from = U.monthStart(date); to = U.monthEnd(date); }
-          var s = B.summarize(from, to);
+          var s = B.summarize(this.range[0], this.range[1]);
           return {
             income: s.totals.charge, cost: s.utility.total, net: s.totals.charge - s.utility.total,
             deposit: s.totals.deposit, ownersNet: s.totals.net, due: s.totals.due,
           };
         },
-        totals: function () { return B.totals(B.entriesOn(this.date)); },
+        totals: function () { return B.summarize(this.range[0], this.range[1]).totals; },
         setupDone: function () {
           return {
             owners: D.list('owners').length, drivers: D.list('drivers').length, rickshaws: D.list('rickshaws').length,
@@ -141,8 +144,8 @@ RM.state.homePeriod = 'month';
         '<button :class="{on: period === \'month\'}" @click="period = \'month\'">{{ $t(\'home.pMonth\') }}</button></div></div>' +
         '<p class="hero-sub">{{ period === \'month\' ? $d(date, \'month\') : $d(date, \'long\') }}</p>' +
         '<div class="hero-row two">' +
-        '<div><i class="dot chg"></i><span>{{ $t(\'home.garageIncome\') }}</span><b>{{ $m(gp.income) }}</b></div>' +
-        '<div><i class="dot exp"></i><span>{{ $t(\'home.garageCost\') }}</span><b>{{ $m(gp.cost) }}</b></div>' +
+        '<div class="tap" @click="detail = \'income\'"><i class="dot chg"></i><span>{{ $t(\'home.garageIncome\') }}</span><b>{{ $m(gp.income) }}</b><ic name="right" :size="14" class="chev"/></div>' +
+        '<div class="tap" @click="detail = \'cost\'"><i class="dot exp"></i><span>{{ $t(\'home.garageCost\') }}</span><b>{{ $m(gp.cost) }}</b><ic name="right" :size="14" class="chev"/></div>' +
         '</div></div>' +
         '<div v-if="!$isOwner()" class="card collect">' +
         '<div class="collect-main"><span>{{ $t(\'home.collected\') }}</span><b>{{ $m(gp.deposit) }}</b></div>' +
@@ -151,11 +154,14 @@ RM.state.homePeriod = 'month';
         '<div v-if="gp.due" class="collect-row due tap" @click="go(\'dues\')"><span>{{ $t(\'home.dueTotal\') }}</span><b>{{ $m(gp.due) }}</b></div></div>' +
 
         '<div v-if="$isOwner()" class="hero">' +
-        '<div class="hero-main"><span>{{ $isOwner() ? $t(\'home.ownerNet\') : $t(\'home.net\') }}</span><b :class="{neg: totals.net < 0}">{{ $m(totals.net) }}</b></div>' +
+        '<div class="hero-top"><div class="hero-main"><span>{{ $t(\'home.ownerNet\') }}</span><b :class="{neg: totals.net < 0}">{{ $m(totals.net) }}</b></div>' +
+        '<div class="seg-mini"><button :class="{on: period === \'day\'}" @click="period = \'day\'">{{ $t(\'home.pDay\') }}</button>' +
+        '<button :class="{on: period === \'month\'}" @click="period = \'month\'">{{ $t(\'home.pMonth\') }}</button></div></div>' +
+        '<p class="hero-sub">{{ period === \'month\' ? $d(date, \'month\') : $d(date, \'long\') }}</p>' +
         '<div class="hero-row">' +
-        '<div><i class="dot dep"></i><span>{{ $t(\'entry.deposit\') }}</span><b>{{ $m(totals.deposit) }}</b></div>' +
-        '<div><i class="dot exp"></i><span>{{ $t(\'entry.expense\') }}</span><b>{{ $m(totals.expense) }}</b></div>' +
-        '<div><i class="dot chg"></i><span>{{ $t(\'entry.charge\') }}</span><b>{{ $m(totals.charge) }}</b></div>' +
+        '<div class="tap" @click="detail = \'deposit\'"><i class="dot dep"></i><span>{{ $t(\'entry.deposit\') }}</span><b>{{ $m(totals.deposit) }}</b><ic name="right" :size="14" class="chev"/></div>' +
+        '<div class="tap" @click="detail = \'expense\'"><i class="dot exp"></i><span>{{ $t(\'entry.expense\') }}</span><b>{{ $m(totals.expense) }}</b><ic name="right" :size="14" class="chev"/></div>' +
+        '<div class="tap" @click="detail = \'charge\'"><i class="dot chg"></i><span>{{ $t(\'entry.charge\') }}</span><b>{{ $m(totals.charge) }}</b><ic name="right" :size="14" class="chev"/></div>' +
         '</div></div>' +
 
         '<div v-if="!cards.length && $isOwner()" class="card onboard"><p>{{ $t(\'home.ownerEmpty\') }}</p></div>' +
@@ -213,6 +219,7 @@ RM.state.homePeriod = 'month';
         '</template>' +
 
         '<button v-if="cards.length && $can(\'entries\', \'create\')" class="fab" @click="entrySheet = {entry: null, rickshawId: \'\'}" :aria-label="$t(\'entry.new\')"><ic name="plus" :size="26"/></button>' +
+        '<detail-sheet v-if="detail" :kind="detail" :from="range[0]" :to="range[1]" @close="detail = null"/>' +
         '<entry-sheet v-if="entrySheet" :entry="entrySheet.entry" :rickshaw-id="entrySheet.rickshawId" :date="date" @close="entrySheet = null"/>' +
         '<assign-sheet v-if="assignSheet" :assignment="assignSheet.assignment" :rickshaw-id="assignSheet.rickshawId" :date="date" @close="assignSheet = null"/>' +
         '</div>',

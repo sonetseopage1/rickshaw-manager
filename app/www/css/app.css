@@ -376,3 +376,14 @@ h1, h2, h3, h4 { margin: 0; }
 .due-items { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); padding: 4px 12px; margin: 0 0 6px; }
 .due-item { display: grid; grid-template-columns: 1fr auto auto auto; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
 .due-item:last-child { border-bottom: 0; }
+
+/* ===== tappable summary boxes and their detail list ===== */
+.hero-row > div.tap { cursor: pointer; padding-right: 26px; }
+.hero-row > div.tap:active { background: rgba(255, 255, 255, .22); }
+.hero-row .chev { position: absolute; right: 8px; bottom: 10px; opacity: .65; }
+.dl-head { display: flex; justify-content: space-between; align-items: baseline; padding: 2px 2px 10px; }
+.dl-head b { font-size: 22px; color: var(--primary); }
+.dl-day { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; color: var(--muted); padding: 12px 2px 4px; }
+.dl-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 2px; border-bottom: 1px solid var(--line); }
+.dl-main { display: flex; flex-direction: column; min-width: 0; } .dl-main small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dl-none { padding: 26px 0; }
