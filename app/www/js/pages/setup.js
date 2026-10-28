@@ -31,8 +31,8 @@
           if (f === 'rickshaw') return [
             { key: 'number', label: t('setup.rNumber'), req: true, placeholder: 'R-01' },
             { key: 'owner_id', label: t('setup.owner'), type: 'select', options: this.ownerOptions },
-            { key: 'default_rent', label: t('setup.defRent'), type: 'number', hint: t('setup.defRentHint') },
-            { key: 'default_charge', label: t('setup.defCharge'), type: 'number', hint: t('setup.defChargeHint') },
+            { key: 'default_rent', label: t('setup.defRent'), type: 'number', hint: t('setup.defRentHint'), def: this.form.item ? undefined : 400 },
+            { key: 'default_charge', label: t('setup.defCharge'), type: 'number', hint: t('setup.defChargeHint'), def: this.form.item ? undefined : 120 },
             { key: 'status', label: t('setup.status'), type: 'chips', options: this.$opts.statuses(), def: 'active' },
             { key: 'note', label: t('entry.note'), type: 'textarea' },
           ].concat(this.form.item ? [] : [

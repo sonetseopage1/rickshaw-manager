@@ -51,14 +51,50 @@ RM.state.homePeriod = 'month';
             };
           });
         },
+        ownerKey: function () { return RM.state.homeOwner; },
+        /** Garage staff first see the owners; owners (and an admin in owner view) go straight to their rickshaws. */
+        staffList: function () { return !RM.isOwnerRole() && this.ownerKey === null && this.cards.length > 0; },
+        groups: function () {
+          var by = {}, self = this;
+          this.cards.forEach(function (c) {
+            var k = c.r.owner_id || 'none';
+            var g = by[k] = by[k] || { key: k, cards: [] };
+            g.cards.push(c);
+          });
+          function make(key, name, isSelf) {
+            var g = by[key] || { key: key, cards: [] };
+            var live = g.cards.filter(function (c) { return c.status !== 'inactive'; });
+            var t = { deposit: 0, expense: 0, charge: 0, net: 0 };
+            g.cards.forEach(function (c) { t.deposit += c.t.deposit; t.expense += c.t.expense; t.charge += c.t.charge; t.net += c.t.net; });
+            return {
+              key: key, name: name, self: isSelf, count: live.length, t: t,
+              free: live.filter(function (c) { return c.status === 'free'; }).length,
+              occupied: live.filter(function (c) { return c.status === 'occupied'; }).length,
+              maintenance: live.filter(function (c) { return c.status === 'maintenance'; }).length,
+            };
+          }
+          var out = D.list('owners').slice().sort(function (a, b) { return U.natural(a.name, b.name); })
+            .map(function (o) { return make(o.id, o.name, !!o.is_self); });
+          if (by.none) out.push(make('none', self.$t('reports.noOwner'), false));
+          return out;
+        },
+        cur: function () {
+          var k = this.ownerKey, g = this.groups.find(function (x) { return x.key === k; });
+          return g || { key: k, name: '', count: 0, t: { deposit: 0, expense: 0, charge: 0, net: 0 } };
+        },
+        scoped: function () {
+          var k = this.ownerKey;
+          if (RM.isOwnerRole() || k === null) return this.cards;
+          return this.cards.filter(function (c) { return (c.r.owner_id || 'none') === k; });
+        },
         counts: function () {
           var c = { all: 0, free: 0, occupied: 0, maintenance: 0, inactive: 0 };
-          this.cards.forEach(function (x) { c.all++; c[x.status]++; });
+          this.scoped.forEach(function (x) { c.all++; c[x.status]++; });
           return c;
         },
         shown: function () {
           var f = this.filter;
-          return this.cards.filter(function (x) { return f === 'all' ? x.status !== 'inactive' : x.status === f; });
+          return this.scoped.filter(function (x) { return f === 'all' ? x.status !== 'inactive' : x.status === f; });
         },
         period: {
           get: function () { return RM.state.homePeriod; },
@@ -90,6 +126,8 @@ RM.state.homePeriod = 'month';
         assign: function (c) { this.assignSheet = { assignment: null, rickshawId: c.r.id }; },
         edit: function (e) { this.entrySheet = { entry: e, rickshawId: e.rickshaw_id }; },
         go: function (p) { RM.go(p); },
+        openOwner: function (k) { RM.openOwner(k); },
+        closeOwner: function () { RM.closeOwner(); },
       },
       template: '<div class="page">' +
         '<date-nav v-model="date"/>' +
@@ -129,6 +167,22 @@ RM.state.homePeriod = 'month';
 
         '<template v-else>' +
         '<button v-if="$can(\'entries\', \'create\')" class="btn soft block daybook-btn" @click="go(\'daybook\')"><ic name="receipt" :size="18"/> {{ $t(\'home.openDaybook\') }}</button>' +
+
+        '<template v-if="staffList">' +
+        '<h4 class="sec-title">{{ $t(\'home.owners\') }}</h4><p class="muted small owners-hint">{{ $t(\'home.ownersHint\') }}</p>' +
+        '<div v-for="g in groups" :key="g.key" class="row-card owner-row" @click="openOwner(g.key)">' +
+        '<avatar :name="g.name" :size="46"/>' +
+        '<div class="rc-main"><b>{{ g.name }} <span v-if="g.self" class="tag free">{{ $t(\'setup.me\') }}</span></b>' +
+        '<span class="muted">{{ $n(g.count) }} {{ $t(\'setup.rickshawsCount\') }}</span>' +
+        '<span class="occ-dots"><i class="d free"></i>{{ $n(g.free) }}<i class="d occupied"></i>{{ $n(g.occupied) }}<template v-if="g.maintenance"><i class="d maintenance"></i>{{ $n(g.maintenance) }}</template></span></div>' +
+        '<div class="rc-side"><small class="muted">{{ $t(\'entry.deposit\') }}</small><b class="c-dep">{{ $m(g.t.deposit) }}</b>' +
+        '<small :class="{neg: g.t.net < 0}">{{ $netLabel() }} {{ $m(g.t.net) }}</small></div><ic name="right" :size="18"/></div>' +
+        '</template>' +
+
+        '<template v-else>' +
+        '<div v-if="!$isOwner()" class="drill-head"><button class="icon-btn" @click="closeOwner" :aria-label="$t(\'common.prev\')"><ic name="left" :size="20"/></button>' +
+        '<div class="dh-t"><b>{{ cur.name }}</b><small class="muted">{{ $n(cur.count) }} {{ $t(\'setup.rickshawsCount\') }}</small></div>' +
+        '<div class="dh-side"><b :class="{neg: cur.t.net < 0}">{{ $m(cur.t.net) }}</b><small class="muted">{{ $netLabel() }}</small></div></div>' +
         '<div class="seg-scroll"><button v-for="k in [\'all\', \'free\', \'occupied\', \'maintenance\']" :key="k" class="seg" :class="[\'s-\' + k, {on: filter === k}]" @click="filter = k">' +
         '{{ $t(\'home.f_\' + k) }} <b>{{ $n(counts[k]) }}</b></button></div>' +
 
@@ -146,6 +200,7 @@ RM.state.homePeriod = 'month';
         '<button v-if="c.status !== \'inactive\' && $can(\'entries\', \'create\')" class="mini pri" @click="addEntry(c)"><ic name="plus" :size="14"/> {{ $t(\'home.addEntry\') }}</button>' +
         '</div></div></div>' +
         '<empty v-if="!shown.length" icon="rickshaw" :text="$t(\'home.nothing\')"/>' +
+        '</template>' +
         '</template>' +
 
         '<button v-if="cards.length && $can(\'entries\', \'create\')" class="fab" @click="entrySheet = {entry: null, rickshawId: \'\'}" :aria-label="$t(\'entry.new\')"><ic name="plus" :size="26"/></button>' +

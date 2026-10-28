@@ -16,8 +16,30 @@
     return ROUTES.indexOf(n) >= 0 ? n : 'home';
   }
 
+  function ownerParam(h) {
+    var m = /[?&]o=([^&]*)/.exec(String(h || ''));
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
   var route = Vue.ref(parse(location.hash));
-  window.addEventListener('hashchange', function () { route.value = parse(location.hash); });
+  RM.state.homeOwner = ownerParam(location.hash); // null = the list of owners
+  window.addEventListener('hashchange', function () {
+    route.value = parse(location.hash);
+    RM.state.homeOwner = ownerParam(location.hash);
+  });
+
+  RM.openOwner = function (key) {
+    RM.state.homeFilter = 'all';
+    location.hash = '#/home?o=' + encodeURIComponent(key);
+  };
+  RM.closeOwner = function () {
+    if (RM.state.homeOwner === null) return;
+    history.back();
+    // opened straight from a reloaded address: there is nothing to go back to
+    setTimeout(function () {
+      if (RM.state.homeOwner !== null) { history.replaceState(history.state, '', '#/home'); RM.state.homeOwner = null; }
+    }, 200);
+  };
 
   RM.go = function (name) {
     if (SUBS.indexOf(name) >= 0) {
@@ -25,6 +47,7 @@
     } else {
       history.replaceState(history.state, '', '#/' + name);
       route.value = name;
+      RM.state.homeOwner = null;
     }
     var c = document.querySelector('.content');
     if (c) c.scrollTop = 0;
