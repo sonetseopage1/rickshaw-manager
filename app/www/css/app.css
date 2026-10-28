@@ -4,6 +4,7 @@
   --primary: #0f766e; --primary-d: #0b5a54; --primary-l: #d9f1ee; --on-primary: #fff;
   --c-dep: #059669; --c-exp: #e11d48; --c-chg: #d97706; --c-net: #4f46e5;
   --free: #059669; --free-bg: #dcf6e8; --occ: #2563eb; --occ-bg: #dbe8ff; --mnt: #d97706; --mnt-bg: #fdecc8;
+  --done: #2563eb; --done-tint: #eff6ff;
   --run: #16a34a; --run-tint: #f0fdf4; --free-red: #dc2626; --free-tint: #fef2f2; --mnt-tint: #fffbeb;
   --off: #6b7280; --off-bg: #e5e7eb; --bad: #dc2626; --bad-bg: #fde2e2; --warn-bg: #fff2cc; --warn: #8a5a00;
   --shadow: 0 1px 2px rgba(14, 38, 43, .06), 0 6px 18px rgba(14, 38, 43, .06);
@@ -15,6 +16,7 @@
     --primary: #14b8a6; --primary-d: #0d9488; --primary-l: #12332f; --on-primary: #04201d;
     --c-dep: #34d399; --c-exp: #fb7185; --c-chg: #fbbf24; --c-net: #818cf8;
     --free: #34d399; --free-bg: #123a2a; --occ: #7aa7ff; --occ-bg: #14284f; --mnt: #fbbf24; --mnt-bg: #3b2c0b;
+    --done: #60a5fa; --done-tint: #101f3a;
     --run: #22c55e; --run-tint: #112a1a; --free-red: #f87171; --free-tint: #2c1618; --mnt-tint: #2b220d;
     --off: #9ca3af; --off-bg: #2a3238; --bad: #f87171; --bad-bg: #432121; --warn-bg: #3b2e0b; --warn: #fcd679;
     --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
@@ -347,3 +349,12 @@ h1, h2, h3, h4 { margin: 0; }
 .seg.s-free.on { background: var(--free-red); color: #fff; }
 .seg.s-maintenance.on { background: var(--mnt); color: #fff; }
 .seg.on[class*="s-"]::before { background: #fff; }
+
+/* ===== deposit saved = blue ("জমা হয়েছে") ===== */
+.rk.done { border-color: var(--done); background: var(--done-tint); }
+.rk .tag.done { background: var(--done); color: #fff; }
+.seg.s-done::before { content: ''; display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; background: var(--done); }
+.seg.s-done.on { background: var(--done); color: #fff; }
+.dbk-row.done { border-color: var(--done); }
+.c-due, .collect-row.due b { color: var(--mnt); }
+.collect-row.due span { color: var(--muted); }

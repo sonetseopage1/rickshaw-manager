@@ -92,6 +92,7 @@
         '<div class="rc-side"><b class="c-dep">{{ $m(e.deposit || 0) }}</b>' +
         '<small v-if="e.expense" class="c-exp">− {{ $m(e.expense) }}<template v-if="e.expense_type"> · {{ $t(\'exp.\' + e.expense_type) }}</template></small>' +
         '<small v-if="e.garage_charge" class="c-chg">− {{ $m(e.garage_charge) }}</small>' +
+        '<small v-if="e.due" class="c-due">{{ $t(\'home.due\') }} {{ $m(e.due) }}</small>' +
         '<small :class="{neg: net(e) < 0}" class="c-net">= {{ $m(net(e)) }}</small></div></div></section>' +
 
         '<button v-if="$can(\'entries\', \'create\')" class="fab" @click="sheet = {}" :aria-label="$t(\'entry.new\')"><ic name="plus" :size="26"/></button>' +

@@ -100,9 +100,10 @@ class SyncTest extends TestCase
         $this->assertSame(1, \DB::table('rickshaws')->count());
 
         // manager can add entries
-        $entry = ['id' => (string) Str::uuid(), 'updated_at' => now()->getTimestampMs(), 'rickshaw_id' => $rick['id'], 'entry_date' => '2026-10-25', 'deposit' => 500, 'garage_charge' => 50];
+        $entry = ['id' => (string) Str::uuid(), 'updated_at' => now()->getTimestampMs(), 'rickshaw_id' => $rick['id'], 'entry_date' => '2026-10-25', 'deposit' => 500, 'due' => 30, 'garage_charge' => 50];
         $this->postJson('/api/sync', ['changes' => ['entries' => [$entry]]], $this->h($token))->assertOk();
         $this->assertSame(1, \DB::table('entries')->count());
+        $this->assertEquals(30, \DB::table('entries')->value('due'));
 
         // manager cannot manage users and sees only own logs
         $this->getJson('/api/users', $this->h($token))->assertForbidden();

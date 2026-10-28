@@ -47,7 +47,7 @@ RM.state.homePeriod = 'month';
             var exp = B.expectedRent(r, date);
             return {
               r: r, status: st, driver: B.driverOn(r.id, date), owner: B.ownerName(r.owner_id), entries: es, t: t,
-              expected: exp, due: exp !== null && es.length && t.deposit < exp ? exp - t.deposit : 0,
+              expected: exp, due: t.due || 0, done: t.deposit > 0, // 'done' = the day's entry with a deposit is saved
             };
           });
         },
@@ -88,13 +88,16 @@ RM.state.homePeriod = 'month';
           return this.cards.filter(function (c) { return (c.r.owner_id || 'none') === k; });
         },
         counts: function () {
-          var c = { all: 0, free: 0, occupied: 0, maintenance: 0, inactive: 0 };
-          this.scoped.forEach(function (x) { c.all++; c[x.status]++; });
+          var c = { all: 0, free: 0, occupied: 0, done: 0, maintenance: 0, inactive: 0 };
+          this.scoped.forEach(function (x) { c.all++; c[x.status]++; if (x.done) c.done++; });
           return c;
         },
         shown: function () {
           var f = this.filter;
-          return this.scoped.filter(function (x) { return f === 'all' ? x.status !== 'inactive' : x.status === f; });
+          return this.scoped.filter(function (x) {
+            if (f === 'done') return x.done;
+            return f === 'all' ? x.status !== 'inactive' : x.status === f;
+          });
         },
         period: {
           get: function () { return RM.state.homePeriod; },
@@ -107,7 +110,7 @@ RM.state.homePeriod = 'month';
           var s = B.summarize(from, to);
           return {
             income: s.totals.charge, cost: s.utility.total, net: s.totals.charge - s.utility.total,
-            deposit: s.totals.deposit, ownersNet: s.totals.net,
+            deposit: s.totals.deposit, ownersNet: s.totals.net, due: s.totals.due,
           };
         },
         totals: function () { return B.totals(B.entriesOn(this.date)); },
@@ -144,7 +147,8 @@ RM.state.homePeriod = 'month';
         '<div v-if="!$isOwner()" class="card collect">' +
         '<div class="collect-main"><span>{{ $t(\'home.collected\') }}</span><b>{{ $m(gp.deposit) }}</b></div>' +
         '<small class="muted">{{ $t(\'home.collectedNote\') }}</small>' +
-        '<div class="collect-row"><span>{{ $t(\'home.ownersShare\') }}</span><b>{{ $m(gp.ownersNet) }}</b></div></div>' +
+        '<div class="collect-row"><span>{{ $t(\'home.ownersShare\') }}</span><b>{{ $m(gp.ownersNet) }}</b></div>' +
+        '<div v-if="gp.due" class="collect-row due"><span>{{ $t(\'home.dueTotal\') }}</span><b>{{ $m(gp.due) }}</b></div></div>' +
 
         '<div v-if="$isOwner()" class="hero">' +
         '<div class="hero-main"><span>{{ $isOwner() ? $t(\'home.ownerNet\') : $t(\'home.net\') }}</span><b :class="{neg: totals.net < 0}">{{ $m(totals.net) }}</b></div>' +
@@ -183,12 +187,12 @@ RM.state.homePeriod = 'month';
         '<div v-if="!$isOwner()" class="drill-head"><button class="icon-btn" @click="closeOwner" :aria-label="$t(\'common.prev\')"><ic name="left" :size="20"/></button>' +
         '<div class="dh-t"><b>{{ cur.name }}</b><small class="muted">{{ $n(cur.count) }} {{ $t(\'setup.rickshawsCount\') }}</small></div>' +
         '<div class="dh-side"><b :class="{neg: cur.t.net < 0}">{{ $m(cur.t.net) }}</b><small class="muted">{{ $netLabel() }}</small></div></div>' +
-        '<div class="seg-scroll"><button v-for="k in [\'all\', \'free\', \'occupied\', \'maintenance\']" :key="k" class="seg" :class="[\'s-\' + k, {on: filter === k}]" @click="filter = k">' +
+        '<div class="seg-scroll"><button v-for="k in [\'all\', \'free\', \'occupied\', \'done\', \'maintenance\']" :key="k" class="seg" :class="[\'s-\' + k, {on: filter === k}]" @click="filter = k">' +
         '{{ $t(\'home.f_\' + k) }} <b>{{ $n(counts[k]) }}</b></button></div>' +
 
         '<div class="rk-grid">' +
-        '<div v-for="c in shown" :key="c.r.id" class="rk" :class="c.status" @click="$can(\'entries\', \'create\') && open(c)">' +
-        '<div class="rk-top"><span class="rk-no">{{ c.r.number }}</span><span class="tag" :class="c.status">{{ $t(\'home.s_\' + c.status) }}</span></div>' +
+        '<div v-for="c in shown" :key="c.r.id" class="rk" :class="[c.status, {done: c.done}]" @click="$can(\'entries\', \'create\') && open(c)">' +
+        '<div class="rk-top"><span class="rk-no">{{ c.r.number }}</span><span class="tag" :class="c.done ? \'done\' : c.status">{{ c.done ? $t(\'home.s_done\') : $t(\'home.s_\' + c.status) }}</span></div>' +
         '<div class="rk-owner" v-if="c.owner">{{ c.owner }}</div>' +
         '<div class="rk-driver" :class="{none: !c.driver}"><avatar v-if="c.driver" :id="c.driver.photo_id" :name="c.driver.name" :size="22"/><ic v-else name="user" :size="15"/> {{ c.driver ? c.driver.name : $t(\'home.noDriver\') }}</div>' +
         '<div v-if="c.entries.length" class="rk-money"><span>{{ $t(\'entry.deposit\') }} <b>{{ $m(c.t.deposit) }}</b></span><span :class="{neg: c.t.net < 0}">{{ $netLabel() }} <b>{{ $m(c.t.net) }}</b></span></div>' +

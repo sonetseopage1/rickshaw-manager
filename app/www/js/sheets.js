@@ -22,7 +22,7 @@
   function formOf(e) {
     var v = function (x) { return x === null || x === undefined ? '' : x; };
     return {
-      driver_id: e.driver_id || '', deposit: v(e.deposit), expense: v(e.expense), expense_type: e.expense_type || '',
+      driver_id: e.driver_id || '', deposit: v(e.deposit), due: v(e.due), expense: v(e.expense), expense_type: e.expense_type || '',
       garage_charge: v(e.garage_charge), taken_time: e.taken_time || '', deposit_time: e.deposit_time || '', note: e.note || '',
     };
   }
@@ -36,13 +36,14 @@
         var f = e ? {
           rickshaw_id: e.rickshaw_id, entry_date: e.entry_date, driver_id: e.driver_id || '',
           deposit: e.deposit === null || e.deposit === undefined ? '' : e.deposit,
+          due: e.due === null || e.due === undefined ? '' : e.due,
           expense: e.expense === null || e.expense === undefined ? '' : e.expense,
           expense_type: e.expense_type || '',
           garage_charge: e.garage_charge === null || e.garage_charge === undefined ? '' : e.garage_charge,
           taken_time: e.taken_time || '', deposit_time: e.deposit_time || '', note: e.note || '',
         } : {
           rickshaw_id: this.rickshawId || '', entry_date: this.date || U.today(), driver_id: '',
-          deposit: '', expense: '', expense_type: '', garage_charge: '', taken_time: '', deposit_time: '', note: '',
+          deposit: '', due: '', expense: '', expense_type: '', garage_charge: '', taken_time: '', deposit_time: '', note: '',
         };
         return {
           f: f, err: '', touched: { driver: !!e, charge: !!e }, target: e || null, saving: false,
@@ -94,7 +95,7 @@
           }
           if (this.target) { // moved on to a day without an entry: start from a clean sheet
             this.target = null;
-            Object.assign(this.f, { deposit: '', expense: '', expense_type: '', garage_charge: '', taken_time: '', deposit_time: '', note: '' });
+            Object.assign(this.f, { deposit: '', due: '', expense: '', expense_type: '', garage_charge: '', taken_time: '', deposit_time: '', note: '' });
             this.touched.driver = false; this.touched.charge = false;
           }
           return false;
@@ -120,7 +121,7 @@
           var row = {
             rickshaw_id: f.rickshaw_id, entry_date: f.entry_date,
             driver_id: f.driver_id || null, owner_id: this.rickshaw ? this.rickshaw.owner_id || null : null,
-            deposit: n(f.deposit), expense: n(f.expense), expense_type: n(f.expense) ? (f.expense_type || null) : null,
+            deposit: n(f.deposit), due: n(f.due), expense: n(f.expense), expense_type: n(f.expense) ? (f.expense_type || null) : null,
             garage_charge: n(f.garage_charge), taken_time: f.taken_time || null, deposit_time: f.deposit_time || null,
             note: (f.note || '').trim() || null,
           };
@@ -150,8 +151,9 @@
         '<p v-if="dup" class="note warn"><ic name="alert" :size="16"/> {{ $t(\'entry.dupBlock\') }}</p>' +
         '<p v-else-if="!entry && target" class="note"><ic name="info" :size="16"/> {{ $t(\'entry.existsUpdate\') }}</p>' +
         '<fld :label="$t(\'entry.driver\')"><select v-model="f.driver_id" @change="touched.driver = true"><option value="">{{ $t(\'entry.noDriver\') }}</option><option v-for="d in drivers" :key="d.id" :value="d.id">{{ d.name }}</option></select></fld>' +
-        '<fld :label="$t(\'entry.deposit\')"><div class="money-in"><span>৳</span><input type="number" inputmode="decimal" min="0" step="any" v-model="f.deposit" :placeholder="expected !== null ? String(expected) : \'0\'"></div>' +
+        '<div class="row2"><fld :label="$t(\'entry.deposit\')"><div class="money-in"><span>৳</span><input type="number" inputmode="decimal" min="0" step="any" v-model="f.deposit" :placeholder="expected !== null ? String(expected) : \'0\'"></div>' +
         '<button v-if="expected !== null && f.deposit === \'\'" type="button" class="link-btn" @click="fillExpected">{{ $t(\'entry.useExpected\') }}: {{ $m(expected) }}</button></fld>' +
+        '<fld :label="$t(\'entry.due\')"><div class="money-in"><span>৳</span><input type="number" inputmode="decimal" min="0" step="any" v-model="f.due" placeholder="0"></div></fld></div>' +
         '<div class="row2">' +
         '<fld :label="$t(\'entry.expense\')"><div class="money-in"><span>৳</span><input type="number" inputmode="decimal" min="0" step="any" v-model="f.expense" placeholder="0"></div></fld>' +
         '<fld :label="$t(\'entry.charge\')"><div class="money-in"><span>৳</span><input type="number" inputmode="decimal" min="0" step="any" v-model="f.garage_charge" @input="touched.charge = true" placeholder="0"></div></fld>' +

@@ -44,6 +44,7 @@
           this.rows = rows;
           this.loadedFor = this.date;
         },
+        isDone: function (x) { return x.entries.length > 0 && B.totals(x.entries).deposit > 0; },
         row: function (id) { return this.rows[id] || { deposit: '', charge: '', expense: '', etype: '', note: '' }; },
         original: function (x) {
           var e = x.entries[0];
@@ -94,7 +95,7 @@
         '<p class="muted small">{{ $t(\'daybook.hint\') }}</p>' +
         '<empty v-if="!list.length" icon="rickshaw" :text="$t(\'assign.noRickshaw\')"/>' +
         '<div v-if="list.length" class="dbk-head"><span>{{ $t(\'entry.rickshaw\') }} / {{ $t(\'entry.driver\') }}</span><span>{{ $t(\'entry.deposit\') }}</span><span>{{ $t(\'entry.charge\') }}</span></div>' +
-        '<div v-for="x in list" :key="x.r.id" class="dbk-row" :class="[x.status, {changed: dirty(x)}]">' +
+        '<div v-for="x in list" :key="x.r.id" class="dbk-row" :class="[x.status, {changed: dirty(x), done: isDone(x)}]">' +
         '<div class="dbk-name"><b>{{ x.r.number }}</b><small :class="{muted: !x.driver}">{{ x.driver ? x.driver.name : $t(\'home.noDriver\') }}</small></div>' +
         '<template v-if="x.entries.length <= 1">' +
         '<input class="dbk-in" type="number" inputmode="decimal" min="0" step="any" v-model="rows[x.r.id].deposit" :placeholder="expectedOf(x)">' +

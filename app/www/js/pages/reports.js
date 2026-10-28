@@ -128,6 +128,7 @@
         '<div class="pl"><span>{{ $t(\'reports.rickshawCosts\') }}</span><b class="c-exp">− {{ $m(t.expense) }}</b></div>' +
         '<div class="pl"><span>{{ $t(\'entry.charge\') }}</span><b class="c-chg">− {{ $m(t.charge) }}</b></div>' +
         '<div class="pl total"><span>{{ $t(\'home.ownersShare\') }}</span><b :class="{neg: t.net < 0}">{{ $m(t.net) }}</b></div>' +
+        '<div v-if="t.due" class="pl"><span>{{ $t(\'home.dueTotal\') }}</span><b class="c-chg">{{ $m(t.due) }}</b></div>' +
         '<bar-chart v-if="sum.series.length > 1 && t.count" :labels="chartLabels" :series="depositSeries" :tips="chartTips"/></div>' +
         '</template>' +
 

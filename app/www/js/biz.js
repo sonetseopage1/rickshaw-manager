@@ -52,9 +52,9 @@
 
   function net(e) { return num(e.deposit) - num(e.expense) - num(e.garage_charge); }
 
-  function emptyTotals() { return { deposit: 0, expense: 0, charge: 0, net: 0, count: 0 }; }
+  function emptyTotals() { return { deposit: 0, due: 0, expense: 0, charge: 0, net: 0, count: 0 }; }
   function add(t, e) {
-    t.deposit += num(e.deposit); t.expense += num(e.expense); t.charge += num(e.garage_charge);
+    t.deposit += num(e.deposit); t.due += num(e.due); t.expense += num(e.expense); t.charge += num(e.garage_charge);
     t.net += net(e); t.count++;
     return t;
   }

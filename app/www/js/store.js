@@ -9,7 +9,7 @@
     drivers: ['name', 'phone', 'nid', 'address', 'note', 'is_active', 'photo_id', 'nid_front_id', 'nid_back_id'],
     rickshaws: ['number', 'owner_id', 'default_rent', 'default_charge', 'status', 'note'],
     assignments: ['rickshaw_id', 'driver_id', 'start_date', 'end_date', 'expected_rent', 'note'],
-    entries: ['rickshaw_id', 'driver_id', 'owner_id', 'entry_date', 'deposit', 'expense', 'expense_type', 'garage_charge', 'taken_time', 'deposit_time', 'note'],
+    entries: ['rickshaw_id', 'driver_id', 'owner_id', 'entry_date', 'deposit', 'due', 'expense', 'expense_type', 'garage_charge', 'taken_time', 'deposit_time', 'note'],
     garage_expenses: ['category', 'amount', 'expense_date', 'note'],
   };
   // Mirrors the server (SyncSchema): c = create, u = update, d = delete.

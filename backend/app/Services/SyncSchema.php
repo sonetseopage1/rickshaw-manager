@@ -52,7 +52,7 @@ class SyncSchema
             'entries' => [
                 'fields' => [
                     'rickshaw_id' => ['uuid'], 'driver_id' => ['uuid'], 'owner_id' => ['uuid'],
-                    'entry_date' => ['date'], 'deposit' => ['dec'], 'expense' => ['dec'],
+                    'entry_date' => ['date'], 'deposit' => ['dec'], 'due' => ['dec'], 'expense' => ['dec'],
                     'expense_type' => ['str', 32], 'garage_charge' => ['dec'],
                     'taken_time' => ['time'], 'deposit_time' => ['time'], 'note' => ['text'],
                 ],
