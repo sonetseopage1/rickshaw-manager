@@ -321,3 +321,15 @@ h1, h2, h3, h4 { margin: 0; }
 .dh-t { flex: 1; min-width: 0; display: flex; flex-direction: column; } .dh-t b { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dh-side { display: flex; flex-direction: column; align-items: flex-end; } .dh-side b { color: var(--c-net); } .dh-side small { font-size: 11.5px; }
 .drill-head { margin-top: 12px; }
+
+/* ===== rickshaw status colours: running = green, free (idle) = red ===== */
+.rk.free, .dbk-row.free { border-color: var(--bad); }
+.rk.occupied, .dbk-row.occupied { border-color: var(--free); }
+.rk .tag.free, .row-card.free .tag.free { background: var(--bad-bg); color: var(--bad); }
+.rk .tag.occupied, .row-card.occupied .tag.occupied { background: var(--free-bg); color: var(--free); }
+.occ-bar .occ.free { background: var(--bad-bg); color: var(--bad); }
+.occ-bar .occ.occupied { background: var(--free-bg); color: var(--free); }
+.occ-dots .d.free { background: var(--bad); }
+.occ-dots .d.occupied { background: var(--free); }
+.seg.s-free.on { background: var(--bad); color: #fff; }
+.seg.s-occupied.on { background: var(--free); color: #fff; }
