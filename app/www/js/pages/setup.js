@@ -50,7 +50,11 @@
             { key: 'phone', label: t('setup.phone'), type: 'tel' },
             { key: 'address', label: t('setup.address') },
             { key: 'note', label: t('entry.note'), type: 'textarea' },
-          ];
+          ].concat(this.form.item || !RM.isAdmin() ? [] : [
+            { key: 'login', label: t('setup.loginOptional'), hint: t('setup.loginOptionalHint') },
+            { key: 'password', label: t('auth.password'), type: 'password', hint: t('auth.passwordHint'),
+              show: function (f) { return !!(f.login && String(f.login).trim()); } },
+          ]);
           if (f === 'staff') {
             var edit = this.form.item;
             return [
@@ -114,9 +118,37 @@
             }
           }
           if (item) v.id = item.id;
+          if (kind === 'owner' && !item) {
+            var login = (v.login || '').trim(), pw = v.password || '';
+            delete v.login; delete v.password;
+            if (login) {
+              if (login.length < 4 || pw.length < 6) { RM.toast(this.$t('auth.fillAll'), 'err'); return; }
+              return this.saveOwnerWithLogin(v, login, pw);
+            }
+          }
+          delete v.login; delete v.password;
           D.save(table, v);
           RM.toast(this.$t('common.saved'), 'ok');
           this.form = null;
+        },
+        /** New owner plus a read-only login in one go. The owner must reach the server first. */
+        saveOwnerWithLogin: function (v, login, pw) {
+          var self = this;
+          var row = D.save('owners', v);
+          this.form = null;
+          RM.toast(this.$t('common.saved'), 'ok');
+          return RM.sync.run().then(function () {
+            return RM.api.post('/users', { name: v.name, login: login, password: pw, role: 'owner', owner_ref: row.id });
+          }).then(function () {
+            RM.toast(self.$t('setup.ownerAndLogin'), 'ok');
+            self.loadUsers();
+          }).catch(function (e) {
+            var msg = e.offline ? self.$t('setup.loginLater')
+              : (e.data && e.data.errors && e.data.errors.login) ? self.$t('staff.loginTaken')
+              : e.data && e.data.errors && e.data.errors.owner_ref ? self.$t('setup.loginLater')
+              : e.message;
+            RM.toast(msg, 'err');
+          });
         },
         remove: function () {
           var self = this, kind = this.form.kind, item = this.form.item;
