@@ -73,7 +73,7 @@
               rickshaw_id: x.r.id, entry_date: date, driver_id: x.driver ? x.driver.id : (e ? e.driver_id : null),
               owner_id: x.r.owner_id || null, deposit: dep, garage_charge: chg, expense: exp, expense_type: exp ? (r.etype || null) : null, note: (r.note || '').trim() || null,
             };
-            if (e) row.id = e.id;
+            row.id = e ? e.id : U.entryId(x.r.id, date);
             D.save('entries', row);
             n++;
           });

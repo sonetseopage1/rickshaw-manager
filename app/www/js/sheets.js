@@ -19,6 +19,14 @@
     palette: ['#0d9488', '#6366f1', '#f59e0b', '#ec4899', '#0ea5e9', '#84cc16', '#a855f7', '#f97316'],
   };
 
+  function formOf(e) {
+    var v = function (x) { return x === null || x === undefined ? '' : x; };
+    return {
+      driver_id: e.driver_id || '', deposit: v(e.deposit), expense: v(e.expense), expense_type: e.expense_type || '',
+      garage_charge: v(e.garage_charge), taken_time: e.taken_time || '', deposit_time: e.deposit_time || '', note: e.note || '',
+    };
+  }
+
   function install(app) {
     app.component('entry-sheet', {
       props: { entry: Object, rickshawId: String, date: String },
@@ -37,7 +45,7 @@
           deposit: '', expense: '', expense_type: '', garage_charge: '', taken_time: '', deposit_time: '', note: '',
         };
         return {
-          f: f, err: '', touched: { driver: !!e, charge: !!e },
+          f: f, err: '', touched: { driver: !!e, charge: !!e }, target: e || null, saving: false,
           more: !!(e && (e.taken_time || e.deposit_time || e.note)),
         };
       },
@@ -56,12 +64,12 @@
         expected: function () {
           return this.rickshaw && this.f.entry_date ? B.expectedRent(this.rickshaw, this.f.entry_date) : null;
         },
+        /** Editing an entry and moving it onto a day that already has one is not allowed. */
         dup: function () {
           var self = this;
-          if (!this.f.rickshaw_id) return null;
-          return D.list('entries').find(function (e) {
-            return e.rickshaw_id === self.f.rickshaw_id && e.entry_date === self.f.entry_date && (!self.entry || e.id !== self.entry.id);
-          }) || null;
+          if (!this.entry || !this.f.rickshaw_id) return null;
+          var other = B.entryFor(this.f.rickshaw_id, this.f.entry_date);
+          return other && other.id !== self.entry.id ? other : null;
         },
         net: function () {
           return B.num(this.f.deposit) - B.num(this.f.expense) - B.num(this.f.garage_charge);
@@ -72,8 +80,28 @@
         'f.entry_date': function () { this.autofill(); },
       },
       methods: {
+        /** A new entry for a rickshaw/day that already has one becomes an update of that one. */
+        pickExisting: function () {
+          var ex = B.entryFor(this.f.rickshaw_id, this.f.entry_date);
+          if (ex) {
+            if (!this.target || this.target.id !== ex.id) {
+              this.target = ex;
+              Object.assign(this.f, formOf(ex));
+              this.touched.driver = true; this.touched.charge = true;
+              this.more = !!(ex.taken_time || ex.deposit_time || ex.note);
+            }
+            return true;
+          }
+          if (this.target) { // moved on to a day without an entry: start from a clean sheet
+            this.target = null;
+            Object.assign(this.f, { deposit: '', expense: '', expense_type: '', garage_charge: '', taken_time: '', deposit_time: '', note: '' });
+            this.touched.driver = false; this.touched.charge = false;
+          }
+          return false;
+        },
         autofill: function () {
           if (!this.f.rickshaw_id || !this.f.entry_date) return;
+          if (!this.entry && this.pickExisting()) return;
           if (!this.touched.driver) {
             var d = B.driverOn(this.f.rickshaw_id, this.f.entry_date);
             this.f.driver_id = d ? d.id : '';
@@ -85,7 +113,9 @@
         },
         fillExpected: function () { if (this.expected !== null) this.f.deposit = this.expected; },
         save: function () {
+          if (this.saving) return; // a second tap must not save again
           if (!this.f.rickshaw_id || !this.f.entry_date) { this.err = this.$t('entry.needRickshaw'); return; }
+          if (this.dup) { this.err = this.$t('entry.dupBlock'); return; }
           var f = this.f, n = U.numOrNull;
           var row = {
             rickshaw_id: f.rickshaw_id, entry_date: f.entry_date,
@@ -94,7 +124,9 @@
             garage_charge: n(f.garage_charge), taken_time: f.taken_time || null, deposit_time: f.deposit_time || null,
             note: (f.note || '').trim() || null,
           };
-          if (this.entry) row.id = this.entry.id;
+          // same id for the same rickshaw + day: saving twice updates, never duplicates
+          row.id = this.target ? this.target.id : U.entryId(f.rickshaw_id, f.entry_date);
+          this.saving = true;
           D.save('entries', row);
           RM.toast(this.$t('common.saved'), 'ok');
           this.$emit('saved');
@@ -104,18 +136,19 @@
           var self = this;
           RM.confirm(this.$t('entry.deleteAsk'), { danger: true, ok: this.$t('common.delete') }).then(function (ok) {
             if (!ok) return;
-            D.remove('entries', self.entry.id);
+            D.remove('entries', self.target.id);
             RM.toast(self.$t('common.deleted'));
             self.$emit('close');
           });
         },
       },
-      template: '<sheet :title="entry ? $t(\'entry.edit\') : $t(\'entry.new\')" @close="$emit(\'close\')"><form @submit.prevent="save">' +
+      template: '<sheet :title="target ? $t(\'entry.edit\') : $t(\'entry.new\')" @close="$emit(\'close\')"><form @submit.prevent="save">' +
         '<div class="row2">' +
         '<fld :label="$t(\'entry.rickshaw\')" req><select v-model="f.rickshaw_id"><option value="">{{ $t(\'common.choose\') }}</option><option v-for="r in rickshaws" :key="r.id" :value="r.id">{{ r.number }}</option></select></fld>' +
         '<fld :label="$t(\'entry.date\')" req><input type="date" v-model="f.entry_date" required></fld>' +
         '</div>' +
-        '<p v-if="dup" class="note warn"><ic name="alert" :size="16"/> {{ $t(\'entry.dup\') }}</p>' +
+        '<p v-if="dup" class="note warn"><ic name="alert" :size="16"/> {{ $t(\'entry.dupBlock\') }}</p>' +
+        '<p v-else-if="!entry && target" class="note"><ic name="info" :size="16"/> {{ $t(\'entry.existsUpdate\') }}</p>' +
         '<fld :label="$t(\'entry.driver\')"><select v-model="f.driver_id" @change="touched.driver = true"><option value="">{{ $t(\'entry.noDriver\') }}</option><option v-for="d in drivers" :key="d.id" :value="d.id">{{ d.name }}</option></select></fld>' +
         '<fld :label="$t(\'entry.deposit\')"><div class="money-in"><span>৳</span><input type="number" inputmode="decimal" min="0" step="any" v-model="f.deposit" :placeholder="expected !== null ? String(expected) : \'0\'"></div>' +
         '<button v-if="expected !== null && f.deposit === \'\'" type="button" class="link-btn" @click="fillExpected">{{ $t(\'entry.useExpected\') }}: {{ $m(expected) }}</button></fld>' +
@@ -132,8 +165,8 @@
         '<fld :label="$t(\'entry.note\')"><textarea rows="2" v-model="f.note"></textarea></fld></div>' +
         '<p v-if="err" class="form-err">{{ err }}</p>' +
         '<div class="sheet-actions">' +
-        '<button v-if="entry && $can(\'entries\', \'delete\')" type="button" class="btn danger-o" @click="remove"><ic name="trash" :size="18"/></button>' +
-        '<button class="btn primary grow" type="submit"><ic name="check" :size="18"/> {{ $t(\'common.save\') }}</button>' +
+        '<button v-if="target && $can(\'entries\', \'delete\')" type="button" class="btn danger-o" @click="remove"><ic name="trash" :size="18"/></button>' +
+        '<button class="btn primary grow" type="submit" :disabled="saving"><ic name="check" :size="18"/> {{ $t(\'common.save\') }}</button>' +
         '</div></form></sheet>',
     });
 

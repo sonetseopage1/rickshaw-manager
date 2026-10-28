@@ -60,6 +60,11 @@
   }
   function totals(entries) { return entries.reduce(add, emptyTotals()); }
 
+  /** The (single) entry of a rickshaw on a day, or null. */
+  function entryFor(rid, date) {
+    return D.list('entries').find(function (e) { return e.rickshaw_id === rid && e.entry_date === date; }) || null;
+  }
+
   function entriesOn(date) {
     return D.list('entries').filter(function (e) { return e.entry_date === date; });
   }
@@ -149,7 +154,7 @@
 
   RM.biz = {
     rickshaws: rickshaws, assignmentOn: assignmentOn, driverOn: driverOn, statusOn: statusOn,
-    expectedRent: expectedRent, net: net, totals: totals, entriesOn: entriesOn, overlap: overlap,
+    expectedRent: expectedRent, net: net, totals: totals, entriesOn: entriesOn, entryFor: entryFor, overlap: overlap,
     driverBusy: driverBusy, summarize: summarize, num: num,
     ownerName: function (id) { return nameOf('owners', id, 'name'); },
     driverName: function (id) { return nameOf('drivers', id, 'name'); },

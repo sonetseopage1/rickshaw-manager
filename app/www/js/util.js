@@ -13,6 +13,25 @@
         return (c === 'x' ? r : (r & 3 | 8)).toString(16);
       });
     },
+    /**
+     * One entry per rickshaw per day: the entry id is derived from rickshaw + date, so two taps
+     * (or two phones working offline) that create "today's entry" end up as the same record.
+     */
+    entryId: function (rickshawId, date) {
+      var str = 'entry:' + rickshawId + ':' + date;
+      var h1 = 1779033703, h2 = 3144134277, h3 = 1013904242, h4 = 2773480762;
+      for (var i = 0, k; i < str.length; i++) {
+        k = str.charCodeAt(i);
+        h1 = h2 ^ Math.imul(h1 ^ k, 597399067); h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+        h3 = h4 ^ Math.imul(h3 ^ k, 951274213); h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+      }
+      h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067); h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+      h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213); h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+      h1 ^= (h2 ^ h3 ^ h4); h2 ^= h1; h3 ^= h1; h4 ^= h1;
+      var hex = function (n) { return ('00000000' + (n >>> 0).toString(16)).slice(-8); };
+      var a = hex(h1), b = hex(h2), c = hex(h3), d = hex(h4);
+      return a + '-' + b.slice(0, 4) + '-4' + b.slice(5, 8) + '-8' + c.slice(1, 4) + '-' + c.slice(4) + d;
+    },
     pad: pad,
     ymd: ymd,
     parse: parse,
