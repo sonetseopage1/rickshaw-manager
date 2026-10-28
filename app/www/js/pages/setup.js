@@ -21,6 +21,7 @@
         owners: function () { return D.list('owners').slice().sort(function (a, b) { return U.natural(a.name, b.name); }); },
         drivers: function () { return D.list('drivers').slice().sort(function (a, b) { return U.natural(a.name, b.name); }); },
         rickshaws: function () { return B.rickshaws(); },
+        staffUsers: function () { return this.users.filter(function (u) { return u.role !== 'owner'; }); },
         hasSelfOwner: function () { return D.list('owners').some(function (o) { return o.is_self; }); },
         ownerOptions: function () {
           return [{ v: '', l: this.$t('setup.noOwner') }].concat(this.owners.map(function (o) { return { v: o.id, l: o.name }; }));
@@ -57,13 +58,14 @@
           ]);
           if (f === 'staff') {
             var edit = this.form.item;
+            var ownerPreset = !edit && !!(this.form.preset && this.form.preset.role === 'owner');
             return [
               { key: 'name', label: t('setup.name'), req: true },
               { key: 'login', label: t('auth.login'), req: !edit, hint: edit ? t('staff.loginFixed') : t('auth.loginHint') },
               { key: 'password', label: edit ? t('staff.newPassword') : t('auth.password'), req: !edit, hint: t('auth.passwordHint') },
               { key: 'role', label: t('staff.role'), type: 'chips', def: 'manager',
                 show: function () { return !edit || edit.role !== 'owner'; },
-                options: [{ v: 'manager', l: t('role.manager') }, { v: 'admin', l: t('role.admin') }].concat(edit ? [] : [{ v: 'owner', l: t('role.owner') }]) },
+                options: ownerPreset ? [{ v: 'owner', l: t('role.owner') }] : [{ v: 'manager', l: t('role.manager') }, { v: 'admin', l: t('role.admin') }] },
               { key: 'owner_ref', label: t('staff.pickOwner'), type: 'select', hint: t('staff.ownerHint'),
                 show: function (f) { return !edit && f.role === 'owner'; },
                 options: [{ v: '', l: t('common.choose') }].concat(this.owners.map(function (o) { return { v: o.id, l: o.name }; })) },
@@ -81,7 +83,8 @@
         ownerOf: function (r) { return B.ownerName(r.owner_id); },
         rickshawCount: function (o) { return this.rickshaws.filter(function (r) { return r.owner_id === o.id; }).length; },
         open: function (kind, item, preset) { this.form = { kind: kind, item: item || null, preset: preset || null }; },
-        hasLogin: function (o) { return this.users.some(function (u) { return u.owner_ref === o.id; }); },
+        hasLogin: function (o) { return !!this.accountOf(o); },
+        accountOf: function (o) { return this.users.find(function (u) { return u.owner_ref === o.id; }) || null; },
         ownerLogin: function (o) { this.open('staff', null, { role: 'owner', owner_ref: o.id, name: o.name }); },
         ownerNameOf: function (u) { return u.owner_ref ? B.ownerName(u.owner_ref) : ''; },
         canEdit: function (table) { return RM.can(table, 'update'); },
@@ -232,13 +235,13 @@
         '<div v-for="o in owners" :key="o.id" class="row-card" @click="canEdit(\'owners\') && open(\'owner\', o)">' +
         '<div class="rc-main"><b>{{ o.name }} <span v-if="o.is_self" class="tag free">{{ $t(\'setup.me\') }}</span></b><span class="muted">{{ o.phone }}</span></div>' +
         '<div class="rc-side"><small class="muted">{{ $n(rickshawCount(o)) }} {{ $t(\'setup.rickshawsCount\') }}</small>' +
-        '<span v-if="hasLogin(o)" class="tag free">{{ $t(\'staff.hasLogin\') }}</span>' +
+        '<button v-if="hasLogin(o) && $isAdmin()" class="mini" @click.stop="open(\'staff\', accountOf(o))"><ic name="key" :size="14"/> {{ $t(\'staff.hasLogin\') }}</button>' +
         '<button v-else-if="$isAdmin()" class="mini" @click.stop="ownerLogin(o)"><ic name="key" :size="14"/> {{ $t(\'staff.ownerLogin\') }}</button></div></div></template>' +
 
         '<template v-if="tab === \'staff\'">' +
         '<p v-if="usersLoading" class="muted center-t">{{ $t(\'common.loading\') }}</p>' +
         '<p v-if="usersErr" class="note warn"><ic name="alert" :size="16"/> {{ usersErr }}</p>' +
-        '<div v-for="u in users" :key="u.id" class="row-card" :class="{dim: u.is_blocked}" @click="open(\'staff\', u)">' +
+        '<div v-for="u in staffUsers" :key="u.id" class="row-card" :class="{dim: u.is_blocked}" @click="open(\'staff\', u)">' +
         '<div class="rc-main"><b>{{ u.name }}</b><span class="muted">{{ u.login }}<template v-if="u.role === \'owner\'"> · {{ ownerNameOf(u) }}</template></span></div>' +
         '<div class="rc-side"><span class="tag" :class="u.role === \'admin\' ? \'occupied\' : u.role === \'owner\' ? \'maintenance\' : \'free\'">{{ $t(\'role.\' + u.role) }}</span>' +
         '<span v-if="u.is_blocked" class="tag blocked">{{ $t(\'staff.blocked\') }}</span></div></div></template>' +
