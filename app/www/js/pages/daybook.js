@@ -62,13 +62,14 @@
           return r.deposit !== o.deposit || r.charge !== o.charge || r.expense !== o.expense || r.etype !== o.etype || r.note !== o.note;
         },
         saveAll: function () {
-          var self = this, n = 0, date = this.date;
+          var self = this, n = 0, date = this.date, missing = [];
           this.list.forEach(function (x) {
             if (!self.dirty(x)) return;
             var r = self.row(x.r.id), e = x.entries[0];
             var dep = U.numOrNull(r.deposit), chg = U.numOrNull(r.charge), exp = U.numOrNull(r.expense);
             var hasAny = dep !== null || chg !== null || exp !== null || (r.note || '').trim() !== '';
             if (!e && !hasAny) return;
+            if (exp !== null && exp > 0 && !(r.note || '').trim()) { missing.push(x.r.number); return; }
             if (chg === null && dep !== null && x.r.default_charge !== null && x.r.default_charge !== undefined && !e) chg = x.r.default_charge;
             var row = {
               rickshaw_id: x.r.id, entry_date: date, driver_id: x.driver ? x.driver.id : (e ? e.driver_id : null),
@@ -78,8 +79,9 @@
             D.save('entries', row);
             n++;
           });
-          RM.toast(n ? this.$t('daybook.saved', { n: this.$n(n) }) : this.$t('daybook.nothing'), n ? 'ok' : '');
-          this.load();
+          if (missing.length) RM.toast(this.$t('entry.noteRequiredFor', { list: missing.join(', ') }), 'err');
+          else RM.toast(n ? this.$t('daybook.saved', { n: this.$n(n) }) : this.$t('daybook.nothing'), n ? 'ok' : '');
+          if (!missing.length) this.load(); // keep what was typed when a reason is still missing
         },
         expectedOf: function (x) {
           var v = B.expectedRent(x.r, this.date);

@@ -72,6 +72,8 @@
           var other = B.entryFor(this.f.rickshaw_id, this.f.entry_date);
           return other && other.id !== self.entry.id ? other : null;
         },
+        /** A cost (khoroch) must say why: the note becomes mandatory. */
+        needNote: function () { return B.num(this.f.expense) > 0; },
         net: function () {
           return B.num(this.f.deposit) - B.num(this.f.garage_charge) - B.num(this.f.expense) - B.num(this.f.due);
         },
@@ -117,6 +119,7 @@
           if (this.saving) return; // a second tap must not save again
           if (!this.f.rickshaw_id || !this.f.entry_date) { this.err = this.$t('entry.needRickshaw'); return; }
           if (this.dup) { this.err = this.$t('entry.dupBlock'); return; }
+          if (this.needNote && !(this.f.note || '').trim()) { this.more = true; this.err = this.$t('entry.noteRequired'); return; }
           var f = this.f, n = U.numOrNull;
           var row = {
             rickshaw_id: f.rickshaw_id, entry_date: f.entry_date,
@@ -161,10 +164,10 @@
         '<fld v-if="f.expense !== \'\' && Number(f.expense) > 0" :label="$t(\'entry.expenseType\')"><chips v-model="f.expense_type" :options="$opts.expenseTypes()" allow-none/></fld>' +
         '<div class="net-line" :class="{neg: net < 0}"><span>{{ $netLabel() }}</span><b>{{ $m(net) }}</b></div>' +
         '<button type="button" class="link-btn" @click="more = !more">{{ more ? $t(\'entry.lessOptions\') : $t(\'entry.moreOptions\') }}</button>' +
-        '<div v-if="more"><div class="row2">' +
+        '<div v-if="more || needNote"><div class="row2">' +
         '<fld :label="$t(\'entry.takenTime\')"><input type="time" v-model="f.taken_time"></fld>' +
         '<fld :label="$t(\'entry.depositTime\')"><input type="time" v-model="f.deposit_time"></fld></div>' +
-        '<fld :label="$t(\'entry.note\')"><textarea rows="2" v-model="f.note"></textarea></fld></div>' +
+        '<fld :label="$t(\'entry.note\')" :req="needNote" :hint="needNote ? $t(\'entry.noteWhy\') : \'\'"><textarea rows="2" v-model="f.note"></textarea></fld></div>' +
         '<p v-if="err" class="form-err">{{ err }}</p>' +
         '<div class="sheet-actions">' +
         '<button v-if="target && $can(\'entries\', \'delete\')" type="button" class="btn danger-o" @click="remove"><ic name="trash" :size="18"/></button>' +
