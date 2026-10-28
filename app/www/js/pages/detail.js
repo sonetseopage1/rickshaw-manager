@@ -7,7 +7,7 @@
   RM.installers.push(function (app) {
     app.component('detail-sheet', {
       props: { kind: String, from: String, to: String },
-      emits: ['close'],
+      emits: ['close', 'add', 'edit'],
       computed: {
         multi: function () { return this.from !== this.to; },
         title: function () {
@@ -20,7 +20,7 @@
           if (k === 'cost') {
             D.list('garage_expenses').forEach(function (x) {
               if (x.expense_date < from || x.expense_date > to) return;
-              out.push({ id: x.id, date: x.expense_date, main: self.$t('cat.' + x.category), sub: x.note || '', amount: B.num(x.amount) });
+              out.push({ id: x.id, date: x.expense_date, main: self.$t('cat.' + x.category), sub: x.note || '', amount: B.num(x.amount), item: x });
             });
           } else {
             var field = { income: 'garage_charge', charge: 'garage_charge', deposit: 'deposit', expense: 'expense' }[k];
@@ -38,6 +38,7 @@
           out.sort(function (a, b) { return b.date.localeCompare(a.date) || U.natural(a.main, b.main); });
           return out;
         },
+        canAddCost: function () { return this.kind === 'cost' && RM.can('garage_expenses', 'create'); },
         total: function () { return this.rows.reduce(function (a, r) { return a + r.amount; }, 0); },
         groups: function () {
           var by = {}, order = [];
@@ -54,8 +55,9 @@
         '<p v-if="!rows.length" class="muted center-t dl-none">{{ $t(\'detail.none\') }}</p>' +
         '<div v-for="g in groups" :key="g.date" class="dl-group">' +
         '<div v-if="multi" class="dl-day"><span>{{ $d(g.date, \'long\') }}</span><b>{{ $m(g.sum) }}</b></div>' +
-        '<div v-for="r in g.items" :key="r.id" class="dl-row"><div class="dl-main"><b>{{ r.main }}</b><small v-if="r.sub" class="muted">{{ r.sub }}</small></div><b>{{ $m(r.amount) }}</b></div>' +
-        '</div></sheet>',
+        '<div v-for="r in g.items" :key="r.id" class="dl-row" :class="{tap: r.item && $can(\'garage_expenses\', \'update\')}" @click="r.item && $can(\'garage_expenses\', \'update\') && $emit(\'edit\', r.item)"><div class="dl-main"><b>{{ r.main }}</b><small v-if="r.sub" class="muted">{{ r.sub }}</small></div><b>{{ $m(r.amount) }}</b></div>' +
+        '</div>' +
+        '<button v-if="canAddCost" class="btn primary block dl-add" @click="$emit(\'add\')"><ic name="plus" :size="18"/> {{ $t(\'detail.addCost\') }}</button></sheet>',
     });
   });
 })();

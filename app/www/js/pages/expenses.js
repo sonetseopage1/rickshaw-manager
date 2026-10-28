@@ -6,6 +6,42 @@
   RM.state.expMonth = U.monthStart(U.today());
 
   RM.installers.push(function (app) {
+    /** Add / edit / delete one garage cost. Used by the costs page, the home page and the cost list. */
+    app.component('expense-sheet', {
+      props: { expense: Object, date: String },
+      emits: ['close'],
+      computed: {
+        fields: function () {
+          var t = this.$t.bind(this), date = this.date || U.today();
+          return [
+            { key: 'category', label: t('exp.category'), type: 'chips', options: this.$opts.categories(), def: 'rent', req: true },
+            { key: 'amount', label: t('exp.amount'), type: 'number', req: true },
+            { key: 'expense_date', label: t('entry.date'), type: 'date', req: true, def: date },
+            { key: 'note', label: t('entry.note'), type: 'textarea' },
+          ];
+        },
+      },
+      methods: {
+        save: function (v) {
+          if (this.expense) v.id = this.expense.id;
+          D.save('garage_expenses', v);
+          RM.toast(this.$t('common.saved'), 'ok');
+          this.$emit('close');
+        },
+        remove: function () {
+          var self = this, id = this.expense.id;
+          RM.confirm(this.$t('exp.deleteAsk'), { danger: true, ok: this.$t('common.delete') }).then(function (ok) {
+            if (!ok) return;
+            D.remove('garage_expenses', id);
+            RM.toast(self.$t('common.deleted'));
+            self.$emit('close');
+          });
+        },
+      },
+      template: '<form-sheet :title="expense ? $t(\'exp.edit\') : $t(\'exp.new\')" :fields="fields" :initial="expense || {}" ' +
+        ':can-delete="!!expense && $can(\'garage_expenses\', \'delete\')" @save="save" @delete="remove" @close="$emit(\'close\')"/>',
+    });
+
     app.component('page-expenses', {
       data: function () { return { form: null }; },
       computed: {
@@ -29,34 +65,10 @@
           });
         },
         garageIncome: function () { return B.summarize(this.month, U.monthEnd(this.month)).totals.charge; },
-        fields: function () {
-          var t = this.$t.bind(this);
-          return [
-            { key: 'category', label: t('exp.category'), type: 'chips', options: this.$opts.categories(), def: 'rent', req: true },
-            { key: 'amount', label: t('exp.amount'), type: 'number', req: true },
-            { key: 'expense_date', label: t('entry.date'), type: 'date', req: true, def: U.today() },
-            { key: 'note', label: t('entry.note'), type: 'textarea' },
-          ];
-        },
       },
       methods: {
         shift: function (n) { this.month = U.addMonths(this.month, n); },
         open: function (x) { this.form = x || {}; },
-        save: function (v) {
-          if (this.form.id) v.id = this.form.id;
-          D.save('garage_expenses', v);
-          RM.toast(this.$t('common.saved'), 'ok');
-          this.form = null;
-        },
-        remove: function () {
-          var self = this, id = this.form.id;
-          RM.confirm(this.$t('exp.deleteAsk'), { danger: true, ok: this.$t('common.delete') }).then(function (ok) {
-            if (!ok) return;
-            D.remove('garage_expenses', id);
-            RM.toast(self.$t('common.deleted'));
-            self.form = null;
-          });
-        },
       },
       template: '<div class="page">' +
         '<div class="date-nav"><button class="icon-btn" @click="shift(-1)"><ic name="left" :size="20"/></button>' +
@@ -75,7 +87,7 @@
         '<div class="rc-side"><b class="c-exp">{{ $m(x.amount) }}</b><small class="muted">{{ $d(x.expense_date, \'short\') }}</small></div></div>' +
 
         '<button class="fab" @click="open()"><ic name="plus" :size="26"/></button>' +
-        '<form-sheet v-if="form" :key="form.id || \'new\'" :title="form.id ? $t(\'exp.edit\') : $t(\'exp.new\')" :fields="fields" :initial="form" :can-delete="!!form.id" @save="save" @delete="remove" @close="form = null"/>' +
+        '<expense-sheet v-if="form" :key="form.id || \'new\'" :expense="form.id ? form : null" @close="form = null"/>' +
         '</div>',
     });
   });

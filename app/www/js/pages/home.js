@@ -24,7 +24,7 @@ RM.state.homePeriod = 'day';
     });
 
     app.component('page-home', {
-      data: function () { return { entrySheet: null, assignSheet: null, detail: null }; },
+      data: function () { return { entrySheet: null, assignSheet: null, detail: null, expenseSheet: null }; },
       computed: {
         s: function () { return RM.state; },
         date: {
@@ -153,6 +153,8 @@ RM.state.homePeriod = 'day';
         '<div class="collect-row"><span>{{ $t(\'home.ownersShare\') }}</span><b>{{ $m(gp.ownersNet) }}</b></div>' +
         '<div v-if="gp.due" class="collect-row due tap" @click="go(\'dues\')"><span>{{ $t(\'home.dueTotal\') }}</span><b>{{ $m(gp.due) }}</b></div></div>' +
 
+        '<button v-if="!$isOwner() && $can(\'garage_expenses\', \'create\')" class="btn soft block add-cost-btn" @click="expenseSheet = {}"><ic name="plus" :size="18"/> {{ $t(\'home.addCost\') }}</button>' +
+
         '<div v-if="$isOwner()" class="hero">' +
         '<div class="hero-top"><div class="hero-main"><span>{{ $t(\'home.ownerNet\') }}</span><b :class="{neg: totals.net < 0}">{{ $m(totals.net) }}</b></div>' +
         '<div class="seg-mini"><button :class="{on: period === \'day\'}" @click="period = \'day\'">{{ $t(\'home.pDay\') }}</button>' +
@@ -219,7 +221,8 @@ RM.state.homePeriod = 'day';
         '</template>' +
 
         '<button v-if="cards.length && $can(\'entries\', \'create\')" class="fab" @click="entrySheet = {entry: null, rickshawId: \'\'}" :aria-label="$t(\'entry.new\')"><ic name="plus" :size="26"/></button>' +
-        '<detail-sheet v-if="detail" :kind="detail" :from="range[0]" :to="range[1]" @close="detail = null"/>' +
+        '<detail-sheet v-if="detail" :kind="detail" :from="range[0]" :to="range[1]" @close="detail = null" @add="expenseSheet = {}" @edit="expenseSheet = $event"/>' +
+        '<expense-sheet v-if="expenseSheet" :key="expenseSheet.id || \'new\'" :expense="expenseSheet.id ? expenseSheet : null" :date="date" @close="expenseSheet = null"/>' +
         '<entry-sheet v-if="entrySheet" :entry="entrySheet.entry" :rickshaw-id="entrySheet.rickshawId" :date="date" @close="entrySheet = null"/>' +
         '<assign-sheet v-if="assignSheet" :assignment="assignSheet.assignment" :rickshaw-id="assignSheet.rickshawId" :date="date" @close="assignSheet = null"/>' +
         '</div>',
