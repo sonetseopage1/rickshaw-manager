@@ -235,10 +235,10 @@ class SyncService
         return false; // garage_expenses
     }
 
-    /** Owners get names and money, not private contact or internal notes. */
+    /** Owners get names, contact, NID and money, but not addresses or the garage's internal notes. */
     private function redact(string $table, array $row): array
     {
-        $hide = ['drivers' => ['nid', 'address', 'note', 'nid_front_id', 'nid_back_id'], 'rickshaws' => ['note'], 'assignments' => ['note'], 'owners' => ['note']];
+        $hide = ['drivers' => ['address', 'note'], 'rickshaws' => ['note'], 'assignments' => ['note'], 'owners' => ['note']];
         foreach ($hide[$table] ?? [] as $f) {
             $row[$f] = null;
         }

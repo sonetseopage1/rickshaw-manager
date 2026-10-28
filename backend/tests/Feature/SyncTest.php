@@ -204,7 +204,8 @@ class SyncTest extends TestCase
         $this->assertCount(1, $c['entries']);
         $this->assertEquals(400, $c["entries"][0]["deposit"]);
         $this->assertArrayNotHasKey('garage_expenses', $c);
-        $this->assertNull($c['drivers'][0]['nid']);
+        $this->assertSame('12345', $c['drivers'][0]['nid']);
+        $this->assertSame('017', $c['drivers'][0]['phone']);
         $this->assertNull($c['rickshaws'][0]['note']);
 
         // read-only, no logs, no staff management
@@ -260,9 +261,11 @@ class SyncTest extends TestCase
         $ot = $this->postJson('/api/auth/login', ['login' => 'ownerphoto', 'password' => 'secret12'])->json('token');
         $d = $this->postJson('/api/sync', ['cursor' => 0], $this->h($ot))->json('changes.drivers.0');
         $this->assertSame($photo, $d['photo_id']);
-        $this->assertNull($d['nid_front_id']);
+        $this->assertSame($front, $d['nid_front_id']);
+        $this->assertNull($d['address']);
         $this->get("/api/files/$photo", $this->h($ot))->assertOk();
-        $this->get("/api/files/$front", $this->h($ot))->assertForbidden();
+        $this->get("/api/files/$front", $this->h($ot))->assertOk();
+        $this->post('/api/files', ['id' => (string) Str::uuid(), 'kind' => 'nid_front', 'file' => $img()], $this->h($ot) + ['Accept' => 'application/json'])->assertForbidden();
         $this->post('/api/files', ['id' => (string) Str::uuid(), 'kind' => 'driver_photo', 'file' => $img()], $this->h($ot) + ['Accept' => 'application/json'])->assertForbidden();
         $this->post('/api/files', ['id' => (string) Str::uuid(), 'kind' => 'avatar', 'file' => $img()], $this->h($ot) + ['Accept' => 'application/json'])->assertCreated();
 

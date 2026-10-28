@@ -24,7 +24,7 @@ RM.state.homePeriod = 'day';
     });
 
     app.component('page-home', {
-      data: function () { return { entrySheet: null, assignSheet: null, detail: null, expenseSheet: null }; },
+      data: function () { return { entrySheet: null, assignSheet: null, detail: null, expenseSheet: null, driverInfo: null }; },
       computed: {
         s: function () { return RM.state; },
         date: {
@@ -201,7 +201,7 @@ RM.state.homePeriod = 'day';
         '<div v-for="c in shown" :key="c.r.id" class="rk" :class="[c.status, {done: c.done}]" @click="$can(\'entries\', \'create\') && open(c)">' +
         '<div class="rk-top"><span class="rk-no">{{ c.r.number }}</span><span class="tag" :class="c.done ? \'done\' : c.status">{{ c.done ? $t(\'home.s_done\') : $t(\'home.s_\' + c.status) }}</span></div>' +
         '<div class="rk-owner" v-if="c.owner">{{ c.owner }}</div>' +
-        '<div class="rk-driver" :class="{none: !c.driver}"><avatar v-if="c.driver" :id="c.driver.photo_id" :name="c.driver.name" :size="22"/><ic v-else name="user" :size="15"/> {{ c.driver ? c.driver.name : $t(\'home.noDriver\') }}</div>' +
+        '<div class="rk-driver" :class="{none: !c.driver, tap: $isOwner() && c.driver}" @click.stop="$isOwner() && c.driver && (driverInfo = c.driver)"><avatar v-if="c.driver" :id="c.driver.photo_id" :name="c.driver.name" :size="22"/><ic v-else name="user" :size="15"/> {{ c.driver ? c.driver.name : $t(\'home.noDriver\') }}</div>' +
         '<div v-if="c.entries.length" class="rk-money">' +
         '<span>{{ $t(\'entry.deposit\') }} <b>{{ $m(c.t.deposit) }}</b></span>' +
         '<span>{{ $t(\'entry.charge\') }} <b>{{ $m(c.t.charge) }}</b></span>' +
@@ -220,6 +220,7 @@ RM.state.homePeriod = 'day';
         '</template>' +
 
         '<button v-if="cards.length && $can(\'entries\', \'create\')" class="fab" @click="entrySheet = {entry: null, rickshawId: \'\'}" :aria-label="$t(\'entry.new\')"><ic name="plus" :size="26"/></button>' +
+        '<driver-info v-if="driverInfo" :driver="driverInfo" @close="driverInfo = null"/>' +
         '<detail-sheet v-if="detail" :kind="detail" :from="range[0]" :to="range[1]" @close="detail = null" @add="expenseSheet = {}" @edit="expenseSheet = $event"/>' +
         '<expense-sheet v-if="expenseSheet" :key="expenseSheet.id || \'new\'" :expense="expenseSheet.id ? expenseSheet : null" :date="date" @close="expenseSheet = null"/>' +
         '<entry-sheet v-if="entrySheet" :entry="entrySheet.entry" :rickshaw-id="entrySheet.rickshawId" :date="date" @close="entrySheet = null"/>' +

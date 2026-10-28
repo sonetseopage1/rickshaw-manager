@@ -28,6 +28,7 @@
         garage: function () { return RM.state.session.garage; },
         items: function () {
           if (RM.isOwnerRole()) return [
+            { to: 'drivers', icon: 'user', t: 'more.drivers', d: 'more.driversDesc' },
             { to: 'dues', icon: 'wallet', t: 'more.dues', d: 'more.duesDesc' },
             { to: 'settings', icon: 'sliders', t: 'more.settings', d: 'more.settingsDesc' },
           ];

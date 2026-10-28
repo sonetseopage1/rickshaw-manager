@@ -17,7 +17,7 @@ class FileController extends Controller
 {
     private const KINDS = ['avatar', 'driver_photo', 'nid_front', 'nid_back'];
 
-    /** Who may upload / download which kind. Owners never touch NID scans. */
+    /** Who may upload / download which kind. Owners can only view driver pictures. */
     private function allowed(Request $request, string $kind): bool
     {
         $user = $request->user();
@@ -25,7 +25,8 @@ class FileController extends Controller
             return true;
         }
         if ($user->isOwner()) {
-            return $kind === 'driver_photo' && $request->isMethod('get');
+            // An owner may look at the photo and NID scans of the drivers on their rickshaws, never upload them.
+            return in_array($kind, ['driver_photo', 'nid_front', 'nid_back'], true) && $request->isMethod('get');
         }
         return true; // admin and manager
     }
