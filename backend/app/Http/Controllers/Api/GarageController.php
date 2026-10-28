@@ -30,6 +30,7 @@ class GarageController extends Controller
         $user = $request->user();
         $limit = min(max((int) $request->query('limit', 50), 1), 100);
 
+        abort_if($user->isOwner(), 403);
         $q = ActivityLog::query()->where('garage_id', $user->garage_id)->orderByDesc('id');
         if (! $user->isAdmin()) {
             $q->where('user_id', $user->id);

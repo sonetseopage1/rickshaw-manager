@@ -14,12 +14,12 @@
   };
   // Mirrors the server (SyncSchema): c = create, u = update, d = delete.
   var PERM = {
-    owners: { admin: 'cud', manager: '' },
-    drivers: { admin: 'cud', manager: 'cu' },
-    rickshaws: { admin: 'cud', manager: '' },
-    assignments: { admin: 'cud', manager: 'cud' },
-    entries: { admin: 'cud', manager: 'cud' },
-    garage_expenses: { admin: 'cud', manager: 'cud' },
+    owners: { admin: 'cud', manager: '', owner: '' },
+    drivers: { admin: 'cud', manager: 'cu', owner: '' },
+    rickshaws: { admin: 'cud', manager: '', owner: '' },
+    assignments: { admin: 'cud', manager: 'cud', owner: '' },
+    entries: { admin: 'cud', manager: 'cud', owner: '' },
+    garage_expenses: { admin: 'cud', manager: 'cud', owner: '' },
   };
   var BATCH = 300;
 
@@ -347,4 +347,5 @@
   RM.setLang = setLang;
   RM.init = init;
   RM.isAdmin = function () { return role() === 'admin'; };
+  RM.isOwnerRole = function () { return role() === 'owner'; };
 })();

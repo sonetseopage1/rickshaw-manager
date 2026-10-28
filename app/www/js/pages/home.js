@@ -80,14 +80,15 @@
         '<date-nav v-model="date"/>' +
 
         '<div class="hero">' +
-        '<div class="hero-main"><span>{{ $t(\'home.net\') }}</span><b :class="{neg: totals.net < 0}">{{ $m(totals.net) }}</b></div>' +
+        '<div class="hero-main"><span>{{ $isOwner() ? $t(\'home.ownerNet\') : $t(\'home.net\') }}</span><b :class="{neg: totals.net < 0}">{{ $m(totals.net) }}</b></div>' +
         '<div class="hero-row">' +
         '<div><i class="dot dep"></i><span>{{ $t(\'entry.deposit\') }}</span><b>{{ $m(totals.deposit) }}</b></div>' +
         '<div><i class="dot exp"></i><span>{{ $t(\'entry.expense\') }}</span><b>{{ $m(totals.expense) }}</b></div>' +
         '<div><i class="dot chg"></i><span>{{ $t(\'entry.charge\') }}</span><b>{{ $m(totals.charge) }}</b></div>' +
         '</div></div>' +
 
-        '<div v-if="!cards.length" class="card onboard">' +
+        '<div v-if="!cards.length && $isOwner()" class="card onboard"><p>{{ $t(\'home.ownerEmpty\') }}</p></div>' +
+        '<div v-if="!cards.length && !$isOwner()" class="card onboard">' +
         '<h3>{{ $t(\'home.welcome\') }}</h3><p class="muted">{{ $t(\'home.welcomeText\') }}</p>' +
         '<ol class="steps">' +
         '<li :class="{done: setupDone.owners}"><span>1</span>{{ $t(\'home.stepOwner\') }}</li>' +
@@ -98,12 +99,12 @@
         '<p v-else class="muted">{{ $t(\'home.askAdmin\') }}</p></div>' +
 
         '<template v-else>' +
-        '<button class="btn soft block daybook-btn" @click="go(\'daybook\')"><ic name="receipt" :size="18"/> {{ $t(\'home.openDaybook\') }}</button>' +
+        '<button v-if="$can(\'entries\', \'create\')" class="btn soft block daybook-btn" @click="go(\'daybook\')"><ic name="receipt" :size="18"/> {{ $t(\'home.openDaybook\') }}</button>' +
         '<div class="seg-scroll"><button v-for="k in [\'all\', \'free\', \'occupied\', \'maintenance\']" :key="k" class="seg" :class="[\'s-\' + k, {on: filter === k}]" @click="filter = k">' +
         '{{ $t(\'home.f_\' + k) }} <b>{{ $n(counts[k]) }}</b></button></div>' +
 
         '<div class="rk-grid">' +
-        '<div v-for="c in shown" :key="c.r.id" class="rk" :class="c.status" @click="open(c)">' +
+        '<div v-for="c in shown" :key="c.r.id" class="rk" :class="c.status" @click="$can(\'entries\', \'create\') && open(c)">' +
         '<div class="rk-top"><span class="rk-no">{{ c.r.number }}</span><span class="tag" :class="c.status">{{ $t(\'home.s_\' + c.status) }}</span></div>' +
         '<div class="rk-owner" v-if="c.owner">{{ c.owner }}</div>' +
         '<div class="rk-driver" :class="{none: !c.driver}"><ic name="user" :size="15"/> {{ c.driver ? c.driver.name : $t(\'home.noDriver\') }}</div>' +
@@ -113,12 +114,12 @@
         '<div class="rk-actions" @click.stop>' +
         '<button v-if="c.status === \'free\' && $can(\'assignments\', \'create\')" class="mini" @click="assign(c)"><ic name="user" :size="14"/> {{ $t(\'home.assignDriver\') }}</button>' +
         '<button v-if="c.entries.length > 1" class="mini" @click="edit(c.entries[c.entries.length - 1])">{{ $n(c.entries.length) }}x</button>' +
-        '<button v-if="c.status !== \'inactive\'" class="mini pri" @click="addEntry(c)"><ic name="plus" :size="14"/> {{ $t(\'home.addEntry\') }}</button>' +
+        '<button v-if="c.status !== \'inactive\' && $can(\'entries\', \'create\')" class="mini pri" @click="addEntry(c)"><ic name="plus" :size="14"/> {{ $t(\'home.addEntry\') }}</button>' +
         '</div></div></div>' +
         '<empty v-if="!shown.length" icon="rickshaw" :text="$t(\'home.nothing\')"/>' +
         '</template>' +
 
-        '<button v-if="cards.length" class="fab" @click="entrySheet = {entry: null, rickshawId: \'\'}" :aria-label="$t(\'entry.new\')"><ic name="plus" :size="26"/></button>' +
+        '<button v-if="cards.length && $can(\'entries\', \'create\')" class="fab" @click="entrySheet = {entry: null, rickshawId: \'\'}" :aria-label="$t(\'entry.new\')"><ic name="plus" :size="26"/></button>' +
         '<entry-sheet v-if="entrySheet" :entry="entrySheet.entry" :rickshaw-id="entrySheet.rickshawId" :date="date" @close="entrySheet = null"/>' +
         '<assign-sheet v-if="assignSheet" :assignment="assignSheet.assignment" :rickshaw-id="assignSheet.rickshawId" :date="date" @close="assignSheet = null"/>' +
         '</div>',

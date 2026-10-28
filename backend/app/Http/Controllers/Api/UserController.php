@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /** Managers / admins of one garage. Admin only. */
 class UserController extends Controller
@@ -29,15 +30,24 @@ class UserController extends Controller
             'name' => 'required|string|max:100',
             'login' => 'required|string|min:4|max:100',
             'password' => 'required|string|min:6|max:100',
-            'role' => 'required|in:admin,manager',
+            'role' => 'required|in:admin,manager,owner',
+            'owner_ref' => 'required_if:role,owner|nullable|string|size:36',
         ]);
+        if ($data['role'] === 'owner') {
+            $ok = DB::table('owners')->where('id', $data['owner_ref'])
+                ->where('garage_id', $request->user()->garage_id)->where('deleted', 0)->exists();
+            if (! $ok) {
+                return response()->json(['message' => 'Unknown owner.', 'errors' => ['owner_ref' => ['unknown']]], 422);
+            }
+        }
         $login = AuthController::normalizeLogin($data['login']);
         if (User::where('login', $login)->exists()) {
             return response()->json(['message' => 'Login already taken.', 'errors' => ['login' => ['taken']]], 422);
         }
 
+        // Rickshaw owners do not count against the plan's staff limit.
         $limit = $request->user()->garage->plan?->max_users;
-        if ($limit !== null && (clone $q)->count() >= $limit) {
+        if ($data['role'] !== 'owner' && $limit !== null && (clone $q)->where('role', '!=', 'owner')->count() >= $limit) {
             return response()->json(['code' => 'plan_limit', 'message' => 'User limit of your plan reached.'], 403);
         }
 
@@ -46,6 +56,7 @@ class UserController extends Controller
             'login' => $login,
             'password' => $data['password'],
             'role' => $data['role'],
+            'owner_ref' => $data['role'] === 'owner' ? $data['owner_ref'] : null,
             'garage_id' => $request->user()->garage_id,
         ]);
         return response()->json(['user' => $user->toApp()], 201);
@@ -57,11 +68,16 @@ class UserController extends Controller
         $data = $request->validate([
             'name' => 'sometimes|string|max:100',
             'password' => 'sometimes|nullable|string|min:6|max:100',
-            'role' => 'sometimes|in:admin,manager',
+            'role' => 'sometimes|in:admin,manager,owner',
             'is_blocked' => 'sometimes|boolean',
         ]);
         if (empty($data['password'])) {
             unset($data['password']);
+        }
+
+        // An owner login stays an owner login (and staff never become owners).
+        if (isset($data['role']) && ($data['role'] === 'owner') !== $user->isOwner()) {
+            unset($data['role']);
         }
 
         $demoting = (isset($data['role']) && $data['role'] !== 'admin') || ! empty($data['is_blocked']);

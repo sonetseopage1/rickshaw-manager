@@ -6,6 +6,9 @@
   var TABS = ['home', 'entries', 'assign', 'reports', 'more'];
   var SUBS = ['setup', 'expenses', 'logs', 'settings', 'daybook'];
   var ROUTES = TABS.concat(SUBS);
+  // Rickshaw owners get a read-only subset of the app.
+  var OWNER_TABS = ['home', 'entries', 'reports', 'more'];
+  var OWNER_ROUTES = OWNER_TABS.concat(['settings']);
   var TAB_ICONS = { home: 'home', entries: 'receipt', assign: 'calendar', reports: 'chart', more: 'menu' };
 
   function parse(h) {
@@ -32,11 +35,16 @@
   });
 
   var App = {
-    data: function () { return { tabs: TABS, icons: TAB_ICONS, dismissed: false }; },
+    data: function () { return { icons: TAB_ICONS, dismissed: false }; },
     computed: {
       s: function () { return RM.state; },
-      route: function () { return route.value; },
-      isSub: function () { return SUBS.indexOf(route.value) >= 0; },
+      isOwner: function () { return RM.isOwnerRole(); },
+      tabs: function () { return this.isOwner ? OWNER_TABS : TABS; },
+      route: function () {
+        var r = route.value;
+        return this.isOwner && OWNER_ROUTES.indexOf(r) < 0 ? 'home' : r;
+      },
+      isSub: function () { return SUBS.indexOf(this.route) >= 0; },
       garage: function () { return this.s.session ? this.s.session.garage : null; },
       user: function () { return this.s.session ? this.s.session.user : null; },
       title: function () { return this.isSub ? this.$t('title.' + this.route) : (this.garage ? this.garage.name : ''); },
@@ -51,7 +59,7 @@
       },
       banner: function () {
         var g = this.garage;
-        if (!g) return null;
+        if (!g || this.isOwner) return null; // subscription notices are for the garage staff
         if (g.status === 'expired') return { kind: 'bad', text: this.$t('banner.expired') };
         if (g.days_left !== null && g.days_left <= 5) {
           if (g.status === 'trial') return { kind: 'warn', text: g.days_left <= 0 ? this.$t('banner.trialLast') : this.$t('banner.trial', { n: this.$n(g.days_left) }) };
@@ -114,6 +122,8 @@
   G.$opts = RM.opts;
   G.$go = RM.go;
   G.$ui = RM.ui;
+  G.$isAdmin = RM.isAdmin;
+  G.$isOwner = RM.isOwnerRole;
 
   RM.installUi(app);
   RM.installCharts(app);

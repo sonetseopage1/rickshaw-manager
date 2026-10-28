@@ -170,6 +170,55 @@ class SyncTest extends TestCase
         $this->deleteJson("/api/users/$uid", [], $this->h($token))->assertStatus(422);
     }
 
+    public function test_rickshaw_owner_sees_only_own_data_read_only(): void
+    {
+        [$admin] = $this->register();
+        $now = now()->getTimestampMs();
+        $ownA = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'name' => 'Owner A'];
+        $ownB = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'name' => 'Owner B'];
+        $rA = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'number' => 'A-1', 'owner_id' => $ownA['id'], 'note' => 'secret note'];
+        $rB = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'number' => 'B-1', 'owner_id' => $ownB['id']];
+        $d1 = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'name' => 'Driver 1', 'nid' => '12345', 'phone' => '017'];
+        $d2 = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'name' => 'Driver 2'];
+        $asA = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'rickshaw_id' => $rA['id'], 'driver_id' => $d1['id'], 'start_date' => '2026-10-01'];
+        $eA = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'rickshaw_id' => $rA['id'], 'owner_id' => $ownA['id'], 'entry_date' => '2026-10-02', 'deposit' => 400, 'garage_charge' => 50];
+        $eB = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'rickshaw_id' => $rB['id'], 'owner_id' => $ownB['id'], 'entry_date' => '2026-10-02', 'deposit' => 999];
+        $cost = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'category' => 'rent', 'amount' => 5000, 'expense_date' => '2026-10-02'];
+        $this->postJson('/api/sync', ['changes' => [
+            'owners' => [$ownA, $ownB], 'rickshaws' => [$rA, $rB], 'drivers' => [$d1, $d2],
+            'assignments' => [$asA], 'entries' => [$eA, $eB], 'garage_expenses' => [$cost],
+        ]], $this->h($admin))->assertOk();
+
+        $this->postJson('/api/users', ['name' => 'Mr A', 'login' => 'ownera', 'password' => 'secret12', 'role' => 'owner', 'owner_ref' => $ownA['id']], $this->h($admin))
+            ->assertCreated()->assertJsonPath('user.owner_ref', $ownA['id']);
+        $this->postJson('/api/users', ['name' => 'X', 'login' => 'ownerx', 'password' => 'secret12', 'role' => 'owner', 'owner_ref' => (string) Str::uuid()], $this->h($admin))->assertStatus(422);
+
+        $token = $this->postJson('/api/auth/login', ['login' => 'ownera', 'password' => 'secret12'])->assertOk()->json('token');
+        $res = $this->postJson('/api/sync', ['cursor' => 0], $this->h($token))->assertOk();
+        $c = $res->json('changes');
+
+        $this->assertSame(['Owner A'], array_column($c['owners'], 'name'));
+        $this->assertSame(['A-1'], array_column($c['rickshaws'], 'number'));
+        $this->assertSame(['Driver 1'], array_column($c['drivers'], 'name'));
+        $this->assertCount(1, $c['entries']);
+        $this->assertEquals(400, $c["entries"][0]["deposit"]);
+        $this->assertArrayNotHasKey('garage_expenses', $c);
+        $this->assertNull($c['drivers'][0]['nid']);
+        $this->assertNull($c['rickshaws'][0]['note']);
+
+        // read-only, no logs, no staff management
+        $this->postJson('/api/sync', ['changes' => ['entries' => [array_merge($eA, ['deposit' => 1, 'updated_at' => $now + 5000])]]], $this->h($token))->assertStatus(403);
+        $this->assertEquals(400, \DB::table('entries')->where('id', $eA['id'])->value('deposit'));
+        $this->getJson('/api/logs', $this->h($token))->assertForbidden();
+        $this->getJson('/api/users', $this->h($token))->assertForbidden();
+
+        // a driver newly assigned to Owner A's rickshaw reaches the owner even though the driver row is old
+        $asB = ['id' => (string) Str::uuid(), 'updated_at' => $now + 10, 'rickshaw_id' => $rA['id'], 'driver_id' => $d2['id'], 'start_date' => '2026-10-20'];
+        $this->postJson('/api/sync', ['changes' => ['assignments' => [$asB]]], $this->h($admin))->assertOk();
+        $res2 = $this->postJson('/api/sync', ['cursor' => $res->json('cursor')], $this->h($token))->assertOk();
+        $this->assertContains('Driver 2', array_column($res2->json('changes.drivers'), 'name'));
+    }
+
     public function test_super_admin_panel_and_install_lock(): void
     {
         $this->register();

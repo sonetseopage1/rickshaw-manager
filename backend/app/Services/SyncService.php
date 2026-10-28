@@ -150,19 +150,24 @@ class SyncService
      *
      * @return array{changes: array, cursor: int, more: bool}
      */
-    public function pull(Garage $garage, int $cursor): array
+    public function pull(Garage $garage, int $cursor, ?User $user = null): array
     {
+        $scope = $user && $user->isOwner() ? $this->ownerScope($garage, (string) $user->owner_ref) : null;
         $limit = self::PULL_LIMIT;
         // Read the committed sequence first: every row up to it is already visible below.
         $seqBefore = (int) Garage::query()->whereKey($garage->id)->value('sync_seq');
         $all = [];
         foreach (SyncSchema::names() as $table) {
-            $rows = DB::table($table)
-                ->where('garage_id', $garage->id)
-                ->where('server_ts', '>', $cursor)
-                ->orderBy('server_ts')
-                ->limit($limit + 1)
-                ->get();
+            $q = DB::table($table)->where('garage_id', $garage->id);
+            // An owner's small reference lists (who owns / drives what) are always sent in full,
+            // because a driver can become relevant to them without the driver row itself changing.
+            if ($scope === null || ! in_array($table, ['owners', 'rickshaws', 'drivers'], true)) {
+                $q->where('server_ts', '>', $cursor);
+            }
+            if ($scope !== null && ! $this->scopeQuery($q, $table, $scope)) {
+                continue; // this table is not visible to owners
+            }
+            $rows = $q->orderBy('server_ts')->limit($limit + 1)->get();
             foreach ($rows as $r) {
                 $all[] = [$table, $r];
             }
@@ -175,7 +180,7 @@ class SyncService
         $changes = [];
         $newCursor = $cursor;
         foreach ($all as [$table, $r]) {
-            $changes[$table][] = SyncSchema::present($table, $r);
+            $changes[$table][] = $scope !== null ? $this->redact($table, SyncSchema::present($table, $r)) : SyncSchema::present($table, $r);
             $newCursor = max($newCursor, (int) $r->server_ts);
         }
         if (! $more) {
@@ -184,6 +189,60 @@ class SyncService
         }
 
         return ['changes' => $changes, 'cursor' => $newCursor, 'more' => $more];
+    }
+
+    /**
+     * What a rickshaw owner may see: only their own rickshaws, the entries and
+     * assignments of those, and the drivers involved. Never garage costs.
+     */
+    private function ownerScope(Garage $garage, string $ref): array
+    {
+        $own = fn ($q) => $q->where('owner_id', $ref)->orWhere(fn ($w) => $w->whereNull('owner_id')
+            ->whereIn('rickshaw_id', DB::table('rickshaws')->where('garage_id', $garage->id)->where('owner_id', $ref)->select('id')));
+
+        $rickshaws = DB::table('rickshaws')->where('garage_id', $garage->id)->where('owner_id', $ref)->pluck('id')->all();
+        $entryRickshaws = DB::table('entries')->where('garage_id', $garage->id)->where($own)->distinct()->pluck('rickshaw_id')->all();
+        $rids = array_values(array_unique(array_merge($rickshaws, $entryRickshaws)));
+
+        $drivers = array_merge(
+            DB::table('assignments')->where('garage_id', $garage->id)->whereIn('rickshaw_id', $rids)->distinct()->pluck('driver_id')->all(),
+            DB::table('entries')->where('garage_id', $garage->id)->where($own)->whereNotNull('driver_id')->distinct()->pluck('driver_id')->all(),
+        );
+
+        return ['ref' => $ref, 'rickshaws' => $rids, 'drivers' => array_values(array_unique($drivers)), 'own' => $own];
+    }
+
+    /** Narrow a table query for an owner. Returns false when the table is hidden. */
+    private function scopeQuery($q, string $table, array $scope): bool
+    {
+        switch ($table) {
+            case 'owners':
+                $q->where('id', $scope['ref']);
+                return true;
+            case 'rickshaws':
+                $q->whereIn('id', $scope['rickshaws']);
+                return true;
+            case 'assignments':
+                $q->whereIn('rickshaw_id', $scope['rickshaws']);
+                return true;
+            case 'drivers':
+                $q->whereIn('id', $scope['drivers']);
+                return true;
+            case 'entries':
+                $q->where($scope['own']);
+                return true;
+        }
+        return false; // garage_expenses
+    }
+
+    /** Owners get names and money, not private contact or internal notes. */
+    private function redact(string $table, array $row): array
+    {
+        $hide = ['drivers' => ['nid', 'address', 'note'], 'rickshaws' => ['note'], 'assignments' => ['note'], 'owners' => ['note']];
+        foreach ($hide[$table] ?? [] as $f) {
+            $row[$f] = null;
+        }
+        return $row;
     }
 
     private function refuse(string $table, ?object $existing, string $id, array &$overrides, array &$dropped): void

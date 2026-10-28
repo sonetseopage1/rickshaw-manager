@@ -129,6 +129,12 @@
     app.component('form-sheet', {
       props: { title: String, fields: Array, initial: Object, canDelete: Boolean, deleteText: String, saveText: String },
       emits: ['close', 'save', 'delete'],
+      computed: {
+        visible: function () {
+          var f = this.f;
+          return this.fields.filter(function (x) { return !x.show || x.show(f); });
+        },
+      },
       data: function () {
         var f = {};
         var init = this.initial || {};
@@ -140,14 +146,14 @@
       },
       methods: {
         submit: function () {
-          for (var i = 0; i < this.fields.length; i++) {
-            var x = this.fields[i];
+          for (var i = 0; i < this.visible.length; i++) {
+            var x = this.visible[i];
             if (x.req && (this.f[x.key] === '' || this.f[x.key] === null)) { this.err = x.label; return; }
           }
           this.err = '';
           var out = {};
           var self = this;
-          this.fields.forEach(function (x) {
+          this.visible.forEach(function (x) {
             var v = self.f[x.key];
             if (x.type === 'number') v = RM.util.numOrNull(v);
             else if (typeof v === 'string') { v = v.trim(); if (v === '') v = null; }
@@ -157,7 +163,7 @@
         },
       },
       template: '<sheet :title="title" @close="$emit(\'close\')"><form @submit.prevent="submit">' +
-        '<template v-for="x in fields" :key="x.key">' +
+        '<template v-for="x in visible" :key="x.key">' +
         '<fld v-if="x.type !== \'switch\'" :label="x.label" :req="x.req" :hint="x.hint">' +
         '<chips v-if="x.type === \'chips\'" v-model="f[x.key]" :options="x.options"/>' +
         '<select v-else-if="x.type === \'select\'" v-model="f[x.key]"><option v-for="o in x.options" :key="o.v" :value="o.v">{{ o.l }}</option></select>' +

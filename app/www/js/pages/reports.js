@@ -18,7 +18,12 @@
   RM.installers.push(function (app) {
     app.component('page-reports', {
       computed: {
-        f: function () { return RM.state.repFilter; },
+        f: function () {
+          var f = RM.state.repFilter;
+          if (RM.isOwnerRole() && f.tab === 'owners') f.tab = 'overview';
+          return f;
+        },
+        tabKeys: function () { return RM.isOwnerRole() ? ['overview', 'rickshaws', 'drivers'] : ['overview', 'rickshaws', 'owners', 'drivers']; },
         range: function () { return RM.periodRange(this.f.period, this.f.from, this.f.to); },
         sum: function () { return B.summarize(this.range[0], this.range[1]); },
         t: function () { return this.sum.totals; },
@@ -94,7 +99,7 @@
       template: '<div class="page">' +
         '<period-bar v-model:period="f.period" v-model:from="f.from" v-model:to="f.to" :keys="[\'today\', \'week\', \'month\', \'lastmonth\', \'30\', \'year\', \'custom\']"/>' +
         '<p class="muted period-lbl">{{ periodLabel }}</p>' +
-        '<div class="seg-scroll tabs"><button v-for="k in [\'overview\', \'rickshaws\', \'owners\', \'drivers\']" :key="k" class="seg" :class="{on: f.tab === k}" @click="f.tab = k">{{ $t(\'reports.tab_\' + k) }}</button></div>' +
+        '<div class="seg-scroll tabs"><button v-for="k in tabKeys" :key="k" class="seg" :class="{on: f.tab === k}" @click="f.tab = k">{{ $t(\'reports.tab_\' + k) }}</button></div>' +
 
         '<template v-if="f.tab === \'overview\'">' +
         '<div class="kpis">' +
@@ -103,7 +108,7 @@
         '<div class="kpi chg"><span>{{ $t(\'entry.charge\') }}</span><b>{{ $m(t.charge) }}</b></div>' +
         '<div class="kpi net"><span>{{ $t(\'entry.net\') }}</span><b :class="{neg: t.net < 0}">{{ $m(t.net) }}</b></div></div>' +
 
-        '<div class="card"><h4>{{ $t(\'reports.garagePL\') }}</h4>' +
+        '<div v-if="!$isOwner()" class="card"><h4>{{ $t(\'reports.garagePL\') }}</h4>' +
         '<div class="pl"><span>{{ $t(\'exp.garageIncome\') }}</span><b>{{ $m(t.charge) }}</b></div>' +
         '<div class="pl"><span>{{ $t(\'reports.utility\') }}</span><b class="c-exp">− {{ $m(sum.utility.total) }}</b></div>' +
         '<div class="pl total"><span>{{ $t(\'exp.garageProfit\') }}</span><b :class="{neg: sum.garageProfit < 0}">{{ $m(sum.garageProfit) }}</b></div></div>' +

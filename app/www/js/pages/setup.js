@@ -57,7 +57,12 @@
               { key: 'name', label: t('setup.name'), req: true },
               { key: 'login', label: t('auth.login'), req: !edit, hint: edit ? t('staff.loginFixed') : t('auth.loginHint') },
               { key: 'password', label: edit ? t('staff.newPassword') : t('auth.password'), req: !edit, hint: t('auth.passwordHint') },
-              { key: 'role', label: t('staff.role'), type: 'chips', def: 'manager', options: [{ v: 'manager', l: t('role.manager') }, { v: 'admin', l: t('role.admin') }] },
+              { key: 'role', label: t('staff.role'), type: 'chips', def: 'manager',
+                show: function () { return !edit || edit.role !== 'owner'; },
+                options: [{ v: 'manager', l: t('role.manager') }, { v: 'admin', l: t('role.admin') }].concat(edit ? [] : [{ v: 'owner', l: t('role.owner') }]) },
+              { key: 'owner_ref', label: t('staff.pickOwner'), type: 'select', hint: t('staff.ownerHint'),
+                show: function (f) { return !edit && f.role === 'owner'; },
+                options: [{ v: '', l: t('common.choose') }].concat(this.owners.map(function (o) { return { v: o.id, l: o.name }; })) },
             ].concat(edit ? [{ key: 'is_blocked', label: t('staff.blocked'), type: 'switch' }] : []);
           }
           return [];
@@ -67,16 +72,19 @@
           return this.$t((this.form.item ? 'setup.edit_' : 'setup.new_') + this.form.kind);
         },
       },
-      mounted: function () { if (this.tab === 'staff') this.loadUsers(); },
+      mounted: function () { if (this.tab === 'staff' || RM.isAdmin()) this.loadUsers(); },
       methods: {
         ownerOf: function (r) { return B.ownerName(r.owner_id); },
         rickshawCount: function (o) { return this.rickshaws.filter(function (r) { return r.owner_id === o.id; }).length; },
-        open: function (kind, item) { this.form = { kind: kind, item: item || null }; },
+        open: function (kind, item, preset) { this.form = { kind: kind, item: item || null, preset: preset || null }; },
+        hasLogin: function (o) { return this.users.some(function (u) { return u.owner_ref === o.id; }); },
+        ownerLogin: function (o) { this.open('staff', null, { role: 'owner', owner_ref: o.id, name: o.name }); },
+        ownerNameOf: function (u) { return u.owner_ref ? B.ownerName(u.owner_ref) : ''; },
         canEdit: function (table) { return RM.can(table, 'update'); },
         canAdd: function (table) { return RM.can(table, 'create'); },
         initial: function () {
           var it = this.form && this.form.item;
-          if (!it) return {};
+          if (!it) return (this.form && this.form.preset) || {};
           if (this.form.kind === 'staff') return { name: it.name, login: it.login, role: it.role, is_blocked: it.is_blocked };
           return it;
         },
@@ -130,7 +138,14 @@
         },
         saveStaff: function (v) {
           var self = this, item = this.form.item;
-          var body = { name: v.name, role: v.role || 'manager' };
+          var body = { name: v.name };
+          if (!item) {
+            body.role = v.role || 'manager';
+            if (body.role === 'owner') {
+              if (!v.owner_ref) { RM.toast(this.$t('staff.pickOwner'), 'err'); return; }
+              body.owner_ref = v.owner_ref;
+            }
+          } else if (item.role !== 'owner') body.role = v.role || item.role;
           if (v.password) body.password = v.password;
           if (item) body.is_blocked = !!v.is_blocked;
           else { body.login = v.login; body.password = v.password; }
@@ -184,14 +199,16 @@
         '<empty v-if="!owners.length" icon="users" :text="$t(\'setup.noOwners\')"/>' +
         '<div v-for="o in owners" :key="o.id" class="row-card" @click="canEdit(\'owners\') && open(\'owner\', o)">' +
         '<div class="rc-main"><b>{{ o.name }} <span v-if="o.is_self" class="tag free">{{ $t(\'setup.me\') }}</span></b><span class="muted">{{ o.phone }}</span></div>' +
-        '<div class="rc-side"><small class="muted">{{ $n(rickshawCount(o)) }} {{ $t(\'setup.rickshawsCount\') }}</small></div></div></template>' +
+        '<div class="rc-side"><small class="muted">{{ $n(rickshawCount(o)) }} {{ $t(\'setup.rickshawsCount\') }}</small>' +
+        '<span v-if="hasLogin(o)" class="tag free">{{ $t(\'staff.hasLogin\') }}</span>' +
+        '<button v-else-if="$isAdmin()" class="mini" @click.stop="ownerLogin(o)"><ic name="key" :size="14"/> {{ $t(\'staff.ownerLogin\') }}</button></div></div></template>' +
 
         '<template v-if="tab === \'staff\'">' +
         '<p v-if="usersLoading" class="muted center-t">{{ $t(\'common.loading\') }}</p>' +
         '<p v-if="usersErr" class="note warn"><ic name="alert" :size="16"/> {{ usersErr }}</p>' +
         '<div v-for="u in users" :key="u.id" class="row-card" :class="{dim: u.is_blocked}" @click="open(\'staff\', u)">' +
-        '<div class="rc-main"><b>{{ u.name }}</b><span class="muted">{{ u.login }}</span></div>' +
-        '<div class="rc-side"><span class="tag" :class="u.role === \'admin\' ? \'occupied\' : \'free\'">{{ $t(\'role.\' + u.role) }}</span>' +
+        '<div class="rc-main"><b>{{ u.name }}</b><span class="muted">{{ u.login }}<template v-if="u.role === \'owner\'"> · {{ ownerNameOf(u) }}</template></span></div>' +
+        '<div class="rc-side"><span class="tag" :class="u.role === \'admin\' ? \'occupied\' : u.role === \'owner\' ? \'maintenance\' : \'free\'">{{ $t(\'role.\' + u.role) }}</span>' +
         '<span v-if="u.is_blocked" class="tag blocked">{{ $t(\'staff.blocked\') }}</span></div></div></template>' +
 
         '<button v-if="tab === \'rickshaws\' && canAdd(\'rickshaws\')" class="fab" @click="open(\'rickshaw\')"><ic name="plus" :size="26"/></button>' +

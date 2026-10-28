@@ -27,6 +27,7 @@
         user: function () { return RM.state.session.user; },
         garage: function () { return RM.state.session.garage; },
         items: function () {
+          if (RM.isOwnerRole()) return [{ to: 'settings', icon: 'sliders', t: 'more.settings', d: 'more.settingsDesc' }];
           return [
             { to: 'setup', icon: 'rickshaw', t: 'more.setup', d: 'more.setupDesc' },
             { to: 'expenses', icon: 'wallet', t: 'more.expenses', d: 'more.expensesDesc' },
@@ -38,7 +39,7 @@
       template: '<div class="page">' +
         '<div class="card profile"><div class="avatar">{{ (user.name || \'?\').charAt(0) }}</div>' +
         '<div><b>{{ user.name }}</b><span class="muted">{{ garage.name }}</span><span class="tag" :class="user.role === \'admin\' ? \'occupied\' : \'free\'">{{ $t(\'role.\' + user.role) }}</span></div></div>' +
-        '<sub-card/>' +
+        '<sub-card v-if="!$isOwner()"/>' +
         '<div class="menu"><button v-for="i in items" :key="i.to" class="menu-item" @click="$go(i.to)">' +
         '<span class="mi-ic"><ic :name="i.icon" :size="22"/></span><span class="mi-t"><b>{{ $t(i.t) }}</b><small>{{ $t(i.d) }}</small></span><ic name="right" :size="18"/></button></div>' +
         '</div>',
@@ -183,7 +184,7 @@
         '<button class="seg" :class="{on: s.lang === \'bn\'}" @click="setLang(\'bn\')">বাংলা</button>' +
         '<button class="seg" :class="{on: s.lang === \'en\'}" @click="setLang(\'en\')">English</button></div></div>' +
 
-        '<sub-card/>' +
+        '<sub-card v-if="!$isOwner()"/>' +
 
         '<div class="card"><h4>{{ $t(\'settings.account\') }}</h4>' +
         '<button class="list-btn" @click="sheet = \'name\'"><span>{{ $t(\'setup.name\') }}</span><b>{{ user.name }}</b></button>' +
