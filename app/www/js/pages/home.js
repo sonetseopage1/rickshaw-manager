@@ -48,6 +48,8 @@ RM.state.homePeriod = 'day';
             return {
               r: r, status: st, driver: B.driverOn(r.id, date), owner: B.ownerName(r.owner_id), entries: es, t: t,
               expected: exp, due: t.due || 0, done: t.deposit > 0, // 'done' = the day's entry with a deposit is saved
+              // 'repair' = in the repair list: marked as in repair, or has a cost (khoroch) entered that day
+              repair: st !== 'inactive' && (st === 'maintenance' || t.expense > 0),
             };
           });
         },
@@ -70,7 +72,7 @@ RM.state.homePeriod = 'day';
               key: key, name: name, self: isSelf, count: live.length, t: t,
               free: live.filter(function (c) { return c.status === 'free'; }).length,
               occupied: live.filter(function (c) { return c.status === 'occupied'; }).length,
-              maintenance: live.filter(function (c) { return c.status === 'maintenance'; }).length,
+              maintenance: live.filter(function (c) { return c.repair; }).length,
             };
           }
           var out = D.list('owners').slice().sort(function (a, b) { return U.natural(a.name, b.name); })
@@ -89,13 +91,19 @@ RM.state.homePeriod = 'day';
         },
         counts: function () {
           var c = { all: 0, free: 0, occupied: 0, done: 0, maintenance: 0, inactive: 0 };
-          this.scoped.forEach(function (x) { c.all++; c[x.status]++; if (x.done) c.done++; });
+          this.scoped.forEach(function (x) {
+            c.all++;
+            if (x.status !== 'maintenance') c[x.status]++;
+            if (x.repair) c.maintenance++;
+            if (x.done) c.done++;
+          });
           return c;
         },
         shown: function () {
           var f = this.filter;
           return this.scoped.filter(function (x) {
             if (f === 'done') return x.done;
+            if (f === 'maintenance') return x.repair;
             return f === 'all' ? x.status !== 'inactive' : x.status === f;
           });
         },
