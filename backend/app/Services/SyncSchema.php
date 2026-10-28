@@ -22,7 +22,7 @@ class SyncSchema
                     'note' => ['text'], 'is_self' => ['bool'],
                 ],
                 'required' => ['name'],
-                'perm' => ['admin' => 'cud', 'manager' => '', 'owner' => ''],
+                'perm' => ['admin' => 'cud', 'manager' => '', 'owner' => '', 'partner' => ''],
             ],
             'drivers' => [
                 'fields' => [
@@ -31,7 +31,7 @@ class SyncSchema
                     'photo_id' => ['uuid'], 'nid_front_id' => ['uuid'], 'nid_back_id' => ['uuid'],
                 ],
                 'required' => ['name'],
-                'perm' => ['admin' => 'cud', 'manager' => 'cu', 'owner' => ''],
+                'perm' => ['admin' => 'cud', 'manager' => 'cu', 'owner' => '', 'partner' => ''],
             ],
             'rickshaws' => [
                 'fields' => [
@@ -39,7 +39,7 @@ class SyncSchema
                     'default_charge' => ['dec'], 'status' => ['enum', self::STATUSES], 'note' => ['text'],
                 ],
                 'required' => ['number'],
-                'perm' => ['admin' => 'cud', 'manager' => '', 'owner' => ''],
+                'perm' => ['admin' => 'cud', 'manager' => '', 'owner' => '', 'partner' => ''],
             ],
             'assignments' => [
                 'fields' => [
@@ -47,7 +47,7 @@ class SyncSchema
                     'end_date' => ['date'], 'expected_rent' => ['dec'], 'note' => ['text'],
                 ],
                 'required' => ['rickshaw_id', 'driver_id', 'start_date'],
-                'perm' => ['admin' => 'cud', 'manager' => 'cud', 'owner' => ''],
+                'perm' => ['admin' => 'cud', 'manager' => 'cud', 'owner' => '', 'partner' => ''],
             ],
             'entries' => [
                 'fields' => [
@@ -57,14 +57,14 @@ class SyncSchema
                     'taken_time' => ['time'], 'deposit_time' => ['time'], 'note' => ['text'],
                 ],
                 'required' => ['rickshaw_id', 'entry_date'],
-                'perm' => ['admin' => 'cud', 'manager' => 'cud', 'owner' => ''],
+                'perm' => ['admin' => 'cud', 'manager' => 'cud', 'owner' => '', 'partner' => ''],
             ],
             'garage_expenses' => [
                 'fields' => [
                     'category' => ['str', 32], 'amount' => ['dec'], 'expense_date' => ['date'], 'note' => ['text'],
                 ],
                 'required' => ['category', 'amount', 'expense_date'],
-                'perm' => ['admin' => 'cud', 'manager' => 'cud', 'owner' => ''],
+                'perm' => ['admin' => 'cud', 'manager' => 'cud', 'owner' => '', 'partner' => ''],
             ],
         ];
     }

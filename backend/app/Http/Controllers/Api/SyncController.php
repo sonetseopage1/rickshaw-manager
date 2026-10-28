@@ -29,8 +29,8 @@ class SyncController extends Controller
         }
 
         $result = ['overrides' => [], 'dropped' => []];
-        if ($pushed > 0 && $user->isOwner()) {
-            return response()->json(['code' => 'read_only', 'message' => 'Owner accounts are view-only.'], 403);
+        if ($pushed > 0 && ($user->isOwner() || $user->isPartner())) {
+            return response()->json(['code' => 'read_only', 'message' => 'This account is view-only.'], 403);
         }
         if ($pushed > 0) {
             if ($garage->status() === 'expired') {

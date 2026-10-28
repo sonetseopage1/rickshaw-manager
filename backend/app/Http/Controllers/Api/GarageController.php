@@ -32,7 +32,7 @@ class GarageController extends Controller
 
         abort_if($user->isOwner(), 403);
         $q = ActivityLog::query()->where('garage_id', $user->garage_id)->orderByDesc('id');
-        if (! $user->isAdmin()) {
+        if (! $user->isAdmin() && ! $user->isPartner()) {
             $q->where('user_id', $user->id);
         }
         if ($before = (int) $request->query('before', 0)) {

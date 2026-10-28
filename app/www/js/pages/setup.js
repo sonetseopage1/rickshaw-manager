@@ -7,7 +7,7 @@
 
   RM.installers.push(function (app) {
     app.component('page-setup', {
-      data: function () { return { form: null, users: [], usersLoading: false, usersErr: '' }; },
+      data: function () { return { driverInfo: null, form: null, users: [], usersLoading: false, usersErr: '' }; },
       computed: {
         tab: {
           get: function () { return RM.state.setupTab; },
@@ -15,7 +15,7 @@
         },
         tabs: function () {
           var t = ['rickshaws', 'drivers', 'owners'];
-          if (RM.isAdmin()) t.push('staff');
+          if (RM.isAdmin() || RM.isPartner()) t.push('staff');
           return t;
         },
         owners: function () { return D.list('owners').slice().sort(function (a, b) { return U.natural(a.name, b.name); }); },
@@ -68,10 +68,13 @@
               { key: 'password', label: edit ? t('staff.newPassword') : t('auth.password'), req: !edit, hint: t('auth.passwordHint') },
               { key: 'role', label: t('staff.role'), type: 'chips', def: 'manager',
                 show: function () { return !edit || edit.role !== 'owner'; },
-                options: ownerPreset ? [{ v: 'owner', l: t('role.owner') }] : [{ v: 'manager', l: t('role.manager') }, { v: 'admin', l: t('role.admin') }] },
+                options: ownerPreset ? [{ v: 'owner', l: t('role.owner') }] : [{ v: 'manager', l: t('role.manager') }, { v: 'admin', l: t('role.admin') }, { v: 'partner', l: t('role.partner') }] },
               { key: 'owner_ref', label: t('staff.pickOwner'), type: 'select', hint: t('staff.ownerHint'),
                 show: function (f) { return !edit && f.role === 'owner'; },
                 options: [{ v: '', l: t('common.choose') }].concat(this.owners.map(function (o) { return { v: o.id, l: o.name }; })) },
+              { key: 'partner_owner', label: t('staff.partnerOwner'), type: 'select', hint: t('staff.partnerHint'),
+                show: function (f) { return !edit && f.role === 'partner'; },
+                options: [{ v: '', l: t('staff.noOwnerLink') }].concat(this.owners.map(function (o) { return { v: o.id, l: o.name }; })) },
             ].concat(edit ? [{ key: 'is_blocked', label: t('staff.blocked'), type: 'switch' }] : []);
           }
           return [];
@@ -81,7 +84,7 @@
           return this.$t((this.form.item ? 'setup.edit_' : 'setup.new_') + this.form.kind);
         },
       },
-      mounted: function () { if (this.tab === 'staff' || RM.isAdmin()) this.loadUsers(); },
+      mounted: function () { if (this.tab === 'staff' || RM.isAdmin() || RM.isPartner()) this.loadUsers(); },
       methods: {
         ownerOf: function (r) { return B.ownerName(r.owner_id); },
         rickshawCount: function (o) { return this.rickshaws.filter(function (r) { return r.owner_id === o.id; }).length; },
@@ -183,6 +186,7 @@
               if (!v.owner_ref) { RM.toast(this.$t('staff.pickOwner'), 'err'); return; }
               body.owner_ref = v.owner_ref;
             }
+            if (body.role === 'partner' && v.partner_owner) body.owner_ref = v.partner_owner;
           } else if (item.role !== 'owner') body.role = v.role || item.role;
           if (v.password) body.password = v.password;
           if (item) body.is_blocked = !!v.is_blocked;
@@ -228,7 +232,7 @@
 
         '<template v-if="tab === \'drivers\'">' +
         '<empty v-if="!drivers.length" icon="user" :text="$t(\'setup.noDrivers\')"/>' +
-        '<div v-for="d in drivers" :key="d.id" class="row-card" :class="{dim: d.is_active === false}" @click="canEdit(\'drivers\') && open(\'driver\', d)">' +
+        '<div v-for="d in drivers" :key="d.id" class="row-card" :class="{dim: d.is_active === false}" @click="canEdit(\'drivers\') ? open(\'driver\', d) : (driverInfo = d)">' +
         '<avatar :id="d.photo_id" :name="d.name" :size="44"/>' +
         '<div class="rc-main"><b>{{ d.name }}</b><span class="muted">{{ d.phone }}</span></div>' +
         '<div class="rc-side"><span v-if="d.is_active === false" class="tag inactive">{{ $t(\'setup.inactive\') }}</span></div></div></template>' +
@@ -245,17 +249,18 @@
         '<template v-if="tab === \'staff\'">' +
         '<p v-if="usersLoading" class="muted center-t">{{ $t(\'common.loading\') }}</p>' +
         '<p v-if="usersErr" class="note warn"><ic name="alert" :size="16"/> {{ usersErr }}</p>' +
-        '<div v-for="u in staffUsers" :key="u.id" class="row-card" :class="{dim: u.is_blocked}" @click="open(\'staff\', u)">' +
+        '<div v-for="u in staffUsers" :key="u.id" class="row-card" :class="{dim: u.is_blocked}" @click="$isAdmin() && open(\'staff\', u)">' +
         '<avatar :id="u.avatar_id" :name="u.name" :size="44"/>' +
         '<div class="rc-main"><b>{{ u.name }}</b><span class="muted">{{ u.login }}<template v-if="u.role === \'owner\'"> · {{ ownerNameOf(u) }}</template></span></div>' +
-        '<div class="rc-side"><span class="tag" :class="u.role === \'admin\' ? \'occupied\' : u.role === \'owner\' ? \'maintenance\' : \'free\'">{{ $t(\'role.\' + u.role) }}</span>' +
+        '<div class="rc-side"><span class="tag" :class="u.role === \'admin\' ? \'occupied\' : u.role === \'owner\' ? \'maintenance\' : u.role === \'partner\' ? \'partner\' : \'free\'">{{ $t(\'role.\' + u.role) }}</span>' +
         '<span v-if="u.is_blocked" class="tag blocked">{{ $t(\'staff.blocked\') }}</span></div></div></template>' +
 
         '<button v-if="tab === \'rickshaws\' && canAdd(\'rickshaws\')" class="fab" @click="open(\'rickshaw\')"><ic name="plus" :size="26"/></button>' +
         '<button v-if="tab === \'drivers\' && canAdd(\'drivers\')" class="fab" @click="open(\'driver\')"><ic name="plus" :size="26"/></button>' +
         '<button v-if="tab === \'owners\' && canAdd(\'owners\')" class="fab" @click="open(\'owner\')"><ic name="plus" :size="26"/></button>' +
-        '<button v-if="tab === \'staff\'" class="fab" @click="open(\'staff\')"><ic name="plus" :size="26"/></button>' +
+        '<button v-if="tab === \'staff\' && $isAdmin()" class="fab" @click="open(\'staff\')"><ic name="plus" :size="26"/></button>' +
 
+        '<driver-info v-if="driverInfo" :driver="driverInfo" @close="driverInfo = null"/>' +
         '<form-sheet v-if="form" :key="form.kind + (form.item ? form.item.id : \'new\')" :title="formTitle" :fields="fields" :initial="initial()" ' +
         ':can-delete="!!form.item && (form.kind === \'staff\' || $can(form.kind + \'s\', \'delete\'))" @save="save" @delete="remove" @close="form = null"/>' +
         '</div>',

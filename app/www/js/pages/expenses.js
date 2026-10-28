@@ -82,11 +82,11 @@
 
         '<div v-if="cats.length" class="card"><donut :items="cats" :center="$m(total)" :sub="$t(\'exp.total\')"/></div>' +
         '<empty v-if="!list.length" icon="wallet" :text="$t(\'exp.none\')"/>' +
-        '<div v-for="x in list" :key="x.id" class="row-card" @click="open(x)">' +
+        '<div v-for="x in list" :key="x.id" class="row-card" @click="$can(\'garage_expenses\', \'update\') && open(x)">' +
         '<div class="rc-main"><b>{{ $t(\'cat.\' + x.category) }}</b><span class="muted">{{ x.note }}</span></div>' +
         '<div class="rc-side"><b class="c-exp">{{ $m(x.amount) }}</b><small class="muted">{{ $d(x.expense_date, \'short\') }}</small></div></div>' +
 
-        '<button class="fab" @click="open()"><ic name="plus" :size="26"/></button>' +
+        '<button v-if="$can(\'garage_expenses\', \'create\')" class="fab" @click="open()"><ic name="plus" :size="26"/></button>' +
         '<expense-sheet v-if="form" :key="form.id || \'new\'" :expense="form.id ? form : null" @close="form = null"/>' +
         '</div>',
     });

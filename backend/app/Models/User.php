@@ -35,6 +35,12 @@ class User extends Authenticatable
         return $this->role === 'super';
     }
 
+    /** Sees everything like an admin, changes nothing. May also own rickshaws (owner_ref). */
+    public function isPartner(): bool
+    {
+        return $this->role === 'partner';
+    }
+
     public function isOwner(): bool
     {
         return $this->role === 'owner';

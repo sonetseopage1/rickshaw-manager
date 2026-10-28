@@ -14,12 +14,12 @@
   };
   // Mirrors the server (SyncSchema): c = create, u = update, d = delete.
   var PERM = {
-    owners: { admin: 'cud', manager: '', owner: '' },
-    drivers: { admin: 'cud', manager: 'cu', owner: '' },
-    rickshaws: { admin: 'cud', manager: '', owner: '' },
-    assignments: { admin: 'cud', manager: 'cud', owner: '' },
-    entries: { admin: 'cud', manager: 'cud', owner: '' },
-    garage_expenses: { admin: 'cud', manager: 'cud', owner: '' },
+    owners: { admin: 'cud', manager: '', owner: '', partner: '' },
+    drivers: { admin: 'cud', manager: 'cu', owner: '', partner: '' },
+    rickshaws: { admin: 'cud', manager: '', owner: '', partner: '' },
+    assignments: { admin: 'cud', manager: 'cud', owner: '', partner: '' },
+    entries: { admin: 'cud', manager: 'cud', owner: '', partner: '' },
+    garage_expenses: { admin: 'cud', manager: 'cud', owner: '', partner: '' },
   };
   var BATCH = 300;
 
@@ -65,6 +65,11 @@
   function selfOwnerId() {
     rev.owners;
     var id = null;
+    var linked = state.session && state.session.user.role === 'partner' ? state.session.user.owner_ref : null;
+    if (linked) {
+      var o = maps.owners.get(linked);
+      return o && !o.deleted ? linked : null;
+    }
     maps.owners.forEach(function (o) { if (o.is_self && !o.deleted && !id) id = o.id; });
     return id;
   }
@@ -427,6 +432,7 @@
   RM.isOwnerRole = function () { return role() === 'owner'; };
   RM.isRealOwner = function () { return realRole() === 'owner'; };
   // An admin who owns rickshaws can flip the whole app into the owner's point of view.
-  RM.canSwitchMode = function () { return realRole() === 'admin' && !!selfOwnerId(); };
+  RM.canSwitchMode = function () { return (realRole() === 'admin' || realRole() === 'partner') && !!selfOwnerId(); };
+  RM.isPartner = function () { return role() === 'partner'; };
   RM.setMode = function (m) { state.mode = m === 'owner' ? 'owner' : 'garage'; };
 })();

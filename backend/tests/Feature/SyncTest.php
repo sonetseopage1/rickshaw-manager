@@ -274,6 +274,54 @@ class SyncTest extends TestCase
         $this->post('/api/files', ['id' => (string) Str::uuid(), 'kind' => 'avatar', 'file' => $txt], $this->h($admin) + ['Accept' => 'application/json'])->assertStatus(422);
     }
 
+    public function test_partner_sees_everything_but_changes_nothing(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('local');
+        [$admin] = $this->register();
+        $now = now()->getTimestampMs();
+        $img = fn () => \Illuminate\Http\UploadedFile::fake()->image('p.jpg', 100, 100)->size(30);
+        $own = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'name' => 'Partner Self', 'is_self' => true];
+        $rick = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'number' => 'P-1', 'owner_id' => $own['id']];
+        $front = (string) Str::uuid();
+        $drv = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'name' => 'Drv', 'nid' => '555', 'address' => 'street', 'nid_front_id' => $front];
+        $cost = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'category' => 'rent', 'amount' => 900, 'expense_date' => '2026-10-02'];
+        $this->post('/api/files', ['id' => $front, 'kind' => 'nid_front', 'file' => $img()], $this->h($admin) + ['Accept' => 'application/json'])->assertCreated();
+        $this->postJson('/api/sync', ['changes' => ['owners' => [$own], 'rickshaws' => [$rick], 'drivers' => [$drv], 'garage_expenses' => [$cost]]], $this->h($admin))->assertOk();
+
+        // the partner may point to an owner record (their own rickshaws); it is optional
+        $this->postJson('/api/users', ['name' => 'Partner', 'login' => 'partner1', 'password' => 'secret12', 'role' => 'partner', 'owner_ref' => $own['id']], $this->h($admin))
+            ->assertCreated()->assertJsonPath('user.role', 'partner')->assertJsonPath('user.owner_ref', $own['id']);
+        $this->postJson('/api/users', ['name' => 'Partner Two', 'login' => 'partner2', 'password' => 'secret12', 'role' => 'partner'], $this->h($admin))
+            ->assertCreated()->assertJsonPath('user.owner_ref', null);
+        $this->postJson('/api/users', ['name' => 'Bad', 'login' => 'partner3', 'password' => 'secret12', 'role' => 'partner', 'owner_ref' => (string) Str::uuid()], $this->h($admin))->assertStatus(422);
+
+        $pt = $this->postJson('/api/auth/login', ['login' => 'partner1', 'password' => 'secret12'])->assertOk()->json('token');
+
+        // sees all of it: other owners, garage costs, NID
+        $c = $this->postJson('/api/sync', ['cursor' => 0], $this->h($pt))->assertOk()->json('changes');
+        $this->assertSame('street', $c['drivers'][0]['address']);
+        $this->assertSame($front, $c['drivers'][0]['nid_front_id']);
+        $this->assertSame(900.0, (float) $c['garage_expenses'][0]['amount']);
+        $this->get("/api/files/$front", $this->h($pt))->assertOk();
+
+        // but cannot write anything
+        $this->postJson('/api/sync', ['changes' => ['rickshaws' => [array_merge($rick, ['number' => 'HACK', 'updated_at' => $now + 9000])]]], $this->h($pt))->assertStatus(403);
+        $this->assertSame('P-1', \DB::table('rickshaws')->where('id', $rick['id'])->value('number'));
+        $this->post('/api/files', ['id' => (string) Str::uuid(), 'kind' => 'nid_front', 'file' => $img()], $this->h($pt) + ['Accept' => 'application/json'])->assertForbidden();
+        $this->post('/api/files', ['id' => (string) Str::uuid(), 'kind' => 'avatar', 'file' => $img()], $this->h($pt) + ['Accept' => 'application/json'])->assertCreated();
+        $this->putJson('/api/garage', ['name' => 'Renamed'], $this->h($pt))->assertForbidden();
+        $this->postJson('/api/users', ['name' => 'X', 'login' => 'sneaky', 'password' => 'secret12', 'role' => 'admin'], $this->h($pt))->assertForbidden();
+        $this->putJson('/api/users/1', ['role' => 'manager'], $this->h($pt))->assertForbidden();
+
+        // may look at the staff list and the whole activity log
+        $this->getJson('/api/users', $this->h($pt))->assertOk()->assertJsonCount(3, 'users');
+        $this->getJson('/api/logs', $this->h($pt))->assertOk();
+        $this->assertGreaterThan(1, count($this->getJson('/api/logs', $this->h($pt))->json('logs')));
+
+        // may change their own password
+        $this->putJson('/api/me/password', ['current_password' => 'secret12', 'password' => 'newsecret1'], $this->h($pt))->assertOk();
+    }
+
     public function test_super_admin_panel_and_install_lock(): void
     {
         $this->register();

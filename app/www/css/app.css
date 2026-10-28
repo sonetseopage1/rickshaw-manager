@@ -414,3 +414,5 @@ h1, h2, h3, h4 { margin: 0; }
 .ev-money { padding: 4px 0 6px; }
 .ev-note { padding: 12px 0; border-top: 1px solid var(--line); } .ev-note p { margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; line-height: 1.55; }
 .ev-empty { padding-top: 8px; }
+
+.tag.partner { background: #ede9fe; color: #6d28d9; }

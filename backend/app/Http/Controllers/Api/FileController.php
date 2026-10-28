@@ -24,6 +24,9 @@ class FileController extends Controller
         if ($kind === 'avatar') {
             return true;
         }
+        if ($user->isPartner()) {
+            return $request->isMethod('get'); // view-only, like an admin who cannot change anything
+        }
         if ($user->isOwner()) {
             // An owner may look at the photo and NID scans of the drivers on their rickshaws, never upload them.
             return in_array($kind, ['driver_photo', 'nid_front', 'nid_back'], true) && $request->isMethod('get');
