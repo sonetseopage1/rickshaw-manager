@@ -4,6 +4,7 @@
   --primary: #0f766e; --primary-d: #0b5a54; --primary-l: #d9f1ee; --on-primary: #fff;
   --c-dep: #059669; --c-exp: #e11d48; --c-chg: #d97706; --c-net: #4f46e5;
   --free: #059669; --free-bg: #dcf6e8; --occ: #2563eb; --occ-bg: #dbe8ff; --mnt: #d97706; --mnt-bg: #fdecc8;
+  --run: #16a34a; --run-tint: #f0fdf4; --free-red: #dc2626; --free-tint: #fef2f2; --mnt-tint: #fffbeb;
   --off: #6b7280; --off-bg: #e5e7eb; --bad: #dc2626; --bad-bg: #fde2e2; --warn-bg: #fff2cc; --warn: #8a5a00;
   --shadow: 0 1px 2px rgba(14, 38, 43, .06), 0 6px 18px rgba(14, 38, 43, .06);
   --r: 18px; --safe-b: env(safe-area-inset-bottom, 0px); --safe-t: env(safe-area-inset-top, 0px);
@@ -14,6 +15,7 @@
     --primary: #14b8a6; --primary-d: #0d9488; --primary-l: #12332f; --on-primary: #04201d;
     --c-dep: #34d399; --c-exp: #fb7185; --c-chg: #fbbf24; --c-net: #818cf8;
     --free: #34d399; --free-bg: #123a2a; --occ: #7aa7ff; --occ-bg: #14284f; --mnt: #fbbf24; --mnt-bg: #3b2c0b;
+    --run: #22c55e; --run-tint: #112a1a; --free-red: #f87171; --free-tint: #2c1618; --mnt-tint: #2b220d;
     --off: #9ca3af; --off-bg: #2a3238; --bad: #f87171; --bad-bg: #432121; --warn-bg: #3b2e0b; --warn: #fcd679;
     --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
   }
@@ -322,14 +324,26 @@ h1, h2, h3, h4 { margin: 0; }
 .dh-side { display: flex; flex-direction: column; align-items: flex-end; } .dh-side b { color: var(--c-net); } .dh-side small { font-size: 11.5px; }
 .drill-head { margin-top: 12px; }
 
-/* ===== rickshaw status colours: running = green, free (idle) = red ===== */
-.rk.free, .dbk-row.free { border-color: var(--bad); }
-.rk.occupied, .dbk-row.occupied { border-color: var(--free); }
-.rk .tag.free, .row-card.free .tag.free { background: var(--bad-bg); color: var(--bad); }
-.rk .tag.occupied, .row-card.occupied .tag.occupied { background: var(--free-bg); color: var(--free); }
-.occ-bar .occ.free { background: var(--bad-bg); color: var(--bad); }
-.occ-bar .occ.occupied { background: var(--free-bg); color: var(--free); }
-.occ-dots .d.free { background: var(--bad); }
-.occ-dots .d.occupied { background: var(--free); }
-.seg.s-free.on { background: var(--bad); color: #fff; }
-.seg.s-occupied.on { background: var(--free); color: #fff; }
+/* ===== rickshaw status colours: running = bright green, free (idle) = red, repair = amber ===== */
+/* solid tags, a faint tint on the whole card and a dot on the filter chips make the state obvious at a glance */
+.rk.occupied, .dbk-row.occupied { border-color: var(--run); }
+.rk.free, .dbk-row.free { border-color: var(--free-red); }
+.rk.occupied { background: var(--run-tint); }
+.rk.free { background: var(--free-tint); }
+.rk.maintenance { background: var(--mnt-tint); }
+.rk .tag.occupied, .row-card.occupied .tag.occupied { background: var(--run); color: #fff; }
+.rk .tag.free, .row-card.free .tag.free { background: var(--free-red); color: #fff; }
+.rk .tag.maintenance, .row-card.maintenance .tag.maintenance { background: var(--mnt); color: #fff; }
+.occ-bar .occ.occupied { background: var(--run); color: #fff; }
+.occ-bar .occ.free { background: var(--free-red); color: #fff; }
+.occ-bar .occ.maintenance { background: var(--mnt); color: #fff; }
+.occ-dots .d.occupied { background: var(--run); }
+.occ-dots .d.free { background: var(--free-red); }
+.seg.s-free::before, .seg.s-occupied::before, .seg.s-maintenance::before { content: ''; display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; }
+.seg.s-occupied::before { background: var(--run); }
+.seg.s-free::before { background: var(--free-red); }
+.seg.s-maintenance::before { background: var(--mnt); }
+.seg.s-occupied.on { background: var(--run); color: #fff; }
+.seg.s-free.on { background: var(--free-red); color: #fff; }
+.seg.s-maintenance.on { background: var(--mnt); color: #fff; }
+.seg.on[class*="s-"]::before { background: #fff; }
