@@ -169,22 +169,19 @@
         },
         syncNow: function () { RM.sync.run(); },
         /** Own profile picture: needs the internet, because the server must hold it before it is attached. */
+        /** Own profile picture, any time (also offline): it shows at once and reaches the server on the next sync. */
         setPhoto: function (ev) {
           var self = this, f = ev.target.files && ev.target.files[0];
           ev.target.value = '';
           if (!f) return;
           RM.files.compress(f, 'avatar').then(function (blob) {
-            var id = RM.files.add(blob, 'avatar');
-            return RM.files.uploadNow(id).then(function () { return RM.api.put('/me', { avatar_id: id }); });
-          }).then(function (r) { return RM.auth.setSession(r); })
-            .then(function () { RM.toast(self.$t('common.saved'), 'ok'); })
-            .catch(function (e) { RM.toast(e && e.offline || (e && !e.status) ? self.$t('photo.needNet') : (e && e.message) || self.$t('photo.failed'), 'err'); });
+            RM.queueAvatar(RM.files.add(blob, 'avatar'));
+            RM.toast(self.$t(navigator.onLine ? 'common.saved' : 'photo.savedOffline'), 'ok');
+          }).catch(function () { RM.toast(self.$t('photo.failed'), 'err'); });
         },
         removePhoto: function () {
-          var self = this;
-          RM.api.put('/me', { avatar_id: null }).then(function (r) { return RM.auth.setSession(r); })
-            .then(function () { RM.toast(self.$t('common.saved'), 'ok'); })
-            .catch(function (e) { RM.toast(e.offline ? self.$t('photo.needNet') : e.message, 'err'); });
+          RM.queueAvatar(null);
+          RM.toast(this.$t('common.saved'), 'ok');
         },
         saveServer: function () {
           var v = this.server.trim().replace(/\/+$/, '');

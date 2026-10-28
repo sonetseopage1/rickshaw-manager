@@ -45,6 +45,16 @@
             { name: this.$t('entry.net'), color: 'var(--c-net)', values: s.map(function (x) { return Math.max(x.net, 0); }) },
           ];
         },
+        garageSeries: function () {
+          var s = this.sum.series;
+          return [
+            { name: this.$t('home.garageIncome'), color: 'var(--c-chg)', values: s.map(function (x) { return x.charge; }) },
+            { name: this.$t('home.garageCost'), color: 'var(--c-exp)', values: s.map(function (x) { return x.util; }) },
+          ];
+        },
+        depositSeries: function () {
+          return [{ name: this.$t('entry.deposit'), color: 'var(--c-dep)', values: this.sum.series.map(function (x) { return x.deposit; }) }];
+        },
         expenseDonut: function () {
           var self = this, pal = RM.colors.palette, e = this.sum.expenseTypes;
           return Object.keys(e).sort(function (a, b) { return e[b] - e[a]; }).map(function (k, i) {
@@ -102,23 +112,36 @@
         '<div class="seg-scroll tabs"><button v-for="k in tabKeys" :key="k" class="seg" :class="{on: f.tab === k}" @click="f.tab = k">{{ $t(\'reports.tab_\' + k) }}</button></div>' +
 
         '<template v-if="f.tab === \'overview\'">' +
+        '<template v-if="!$isOwner()">' +
         '<div class="kpis">' +
+        '<div class="kpi net wide"><span>{{ $t(\'home.garageNet\') }}</span><b :class="{neg: sum.garageProfit < 0}">{{ $m(sum.garageProfit) }}</b></div>' +
+        '<div class="kpi chg"><span>{{ $t(\'home.garageIncome\') }}</span><b>{{ $m(t.charge) }}</b></div>' +
+        '<div class="kpi exp"><span>{{ $t(\'home.garageCost\') }}</span><b>{{ $m(sum.utility.total) }}</b></div></div>' +
+
+        '<div class="card"><h4>{{ $t(\'reports.garageChart\') }}</h4>' +
+        '<bar-chart v-if="sum.series.length > 1 && (t.count || sum.utility.total)" :labels="chartLabels" :series="garageSeries" :tips="chartTips"/>' +
+        '<p v-else class="muted center-t">{{ (t.count || sum.utility.total) ? $t(\'reports.needMoreDays\') : $t(\'reports.noData\') }}</p></div>' +
+        '<div v-if="utilDonut.length" class="card"><h4>{{ $t(\'reports.utility\') }}</h4><donut :items="utilDonut" :center="$m(sum.utility.total)" :sub="$t(\'exp.total\')"/></div>' +
+
+        '<div class="card collect-card"><h4>{{ $t(\'reports.collections\') }}</h4><p class="muted small">{{ $t(\'home.collectedNote\') }}</p>' +
+        '<div class="pl"><span>{{ $t(\'home.collected\') }}</span><b class="c-dep">{{ $m(t.deposit) }}</b></div>' +
+        '<div class="pl"><span>{{ $t(\'reports.rickshawCosts\') }}</span><b class="c-exp">− {{ $m(t.expense) }}</b></div>' +
+        '<div class="pl"><span>{{ $t(\'entry.charge\') }}</span><b class="c-chg">− {{ $m(t.charge) }}</b></div>' +
+        '<div class="pl total"><span>{{ $t(\'home.ownersShare\') }}</span><b :class="{neg: t.net < 0}">{{ $m(t.net) }}</b></div>' +
+        '<bar-chart v-if="sum.series.length > 1 && t.count" :labels="chartLabels" :series="depositSeries" :tips="chartTips"/></div>' +
+        '</template>' +
+
+        '<div v-if="$isOwner()" class="kpis">' +
         '<div class="kpi dep"><span>{{ $t(\'entry.deposit\') }}</span><b>{{ $m(t.deposit) }}</b></div>' +
         '<div class="kpi exp"><span>{{ $t(\'entry.expense\') }}</span><b>{{ $m(t.expense) }}</b></div>' +
         '<div class="kpi chg"><span>{{ $t(\'entry.charge\') }}</span><b>{{ $m(t.charge) }}</b></div>' +
         '<div class="kpi net"><span>{{ $t(\'entry.net\') }}</span><b :class="{neg: t.net < 0}">{{ $m(t.net) }}</b></div></div>' +
 
-        '<div v-if="!$isOwner()" class="card"><h4>{{ $t(\'reports.garagePL\') }}</h4>' +
-        '<div class="pl"><span>{{ $t(\'exp.garageIncome\') }}</span><b>{{ $m(t.charge) }}</b></div>' +
-        '<div class="pl"><span>{{ $t(\'reports.utility\') }}</span><b class="c-exp">− {{ $m(sum.utility.total) }}</b></div>' +
-        '<div class="pl total"><span>{{ $t(\'exp.garageProfit\') }}</span><b :class="{neg: sum.garageProfit < 0}">{{ $m(sum.garageProfit) }}</b></div></div>' +
-
-        '<div class="card"><h4>{{ sum.monthly ? $t(\'reports.perMonth\') : $t(\'reports.perDay\') }}</h4>' +
+        '<div v-if="$isOwner()" class="card"><h4>{{ sum.monthly ? $t(\'reports.perMonth\') : $t(\'reports.perDay\') }}</h4>' +
         '<bar-chart v-if="sum.series.length > 1 && t.count" :labels="chartLabels" :series="chartSeries" :tips="chartTips"/>' +
         '<p v-else class="muted center-t">{{ t.count ? $t(\'reports.needMoreDays\') : $t(\'reports.noData\') }}</p></div>' +
 
         '<div v-if="expenseDonut.length" class="card"><h4>{{ $t(\'reports.expenseTypes\') }}</h4><donut :items="expenseDonut" :center="$m(t.expense)" :sub="$t(\'entry.expense\')"/></div>' +
-        '<div v-if="utilDonut.length" class="card"><h4>{{ $t(\'reports.utility\') }}</h4><donut :items="utilDonut" :center="$m(sum.utility.total)" :sub="$t(\'exp.total\')"/></div>' +
         '</template>' +
 
         '<template v-if="f.tab === \'rickshaws\'"><div class="card"><h4>{{ $t(\'reports.netByRickshaw\') }}</h4>' +

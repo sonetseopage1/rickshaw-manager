@@ -107,19 +107,28 @@
       }
     });
 
+    // The garage's own costs (rent, electricity...) per chart bucket.
+    var utilBy = {};
+    D.list('garage_expenses').forEach(function (x) {
+      if (x.expense_date >= from && x.expense_date <= to) {
+        var uk = bucketKey(x.expense_date, monthly);
+        utilBy[uk] = (utilBy[uk] || 0) + num(x.amount);
+      }
+    });
+
     // Chart series covering every day (or month) of the period, zero where nothing happened.
     var series = [];
     if (monthly) {
       var m = U.monthStart(from);
       while (m <= to) {
         var k = m.slice(0, 7), v = byDay[k] || emptyTotals();
-        series.push({ key: k, date: m, deposit: v.deposit, expense: v.expense, charge: v.charge, net: v.net });
+        series.push({ key: k, date: m, deposit: v.deposit, expense: v.expense, charge: v.charge, net: v.net, util: utilBy[k] || 0 });
         m = U.addMonths(m, 1);
       }
     } else {
       for (var i = 0; i < days; i++) {
         var d = U.addDays(from, i), x = byDay[d] || emptyTotals();
-        series.push({ key: d, date: d, deposit: x.deposit, expense: x.expense, charge: x.charge, net: x.net });
+        series.push({ key: d, date: d, deposit: x.deposit, expense: x.expense, charge: x.charge, net: x.net, util: utilBy[d] || 0 });
       }
     }
 

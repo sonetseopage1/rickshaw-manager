@@ -5,6 +5,7 @@
 
   RM.state.homeDate = U.today();
   RM.state.homeFilter = 'all';
+RM.state.homePeriod = 'month';
 
   RM.installers.push(function (app) {
     app.component('date-nav', {
@@ -59,6 +60,20 @@
           var f = this.filter;
           return this.cards.filter(function (x) { return f === 'all' ? x.status !== 'inactive' : x.status === f; });
         },
+        period: {
+          get: function () { return RM.state.homePeriod; },
+          set: function (v) { RM.state.homePeriod = v; },
+        },
+        /** Garage staff view: the garage's own earning (charges) minus its running costs. */
+        gp: function () {
+          var date = this.date, from = date, to = date;
+          if (this.period === 'month') { from = U.monthStart(date); to = U.monthEnd(date); }
+          var s = B.summarize(from, to);
+          return {
+            income: s.totals.charge, cost: s.utility.total, net: s.totals.charge - s.utility.total,
+            deposit: s.totals.deposit, ownersNet: s.totals.net,
+          };
+        },
         totals: function () { return B.totals(B.entriesOn(this.date)); },
         setupDone: function () {
           return {
@@ -79,7 +94,21 @@
       template: '<div class="page">' +
         '<date-nav v-model="date"/>' +
 
-        '<div class="hero">' +
+        '<div v-if="!$isOwner()" class="hero">' +
+        '<div class="hero-top"><div class="hero-main"><span>{{ $t(\'home.garageNet\') }}</span><b :class="{neg: gp.net < 0}">{{ $m(gp.net) }}</b></div>' +
+        '<div class="seg-mini"><button :class="{on: period === \'day\'}" @click="period = \'day\'">{{ $t(\'home.pDay\') }}</button>' +
+        '<button :class="{on: period === \'month\'}" @click="period = \'month\'">{{ $t(\'home.pMonth\') }}</button></div></div>' +
+        '<p class="hero-sub">{{ period === \'month\' ? $d(date, \'month\') : $d(date, \'long\') }}</p>' +
+        '<div class="hero-row two">' +
+        '<div><i class="dot chg"></i><span>{{ $t(\'home.garageIncome\') }}</span><b>{{ $m(gp.income) }}</b></div>' +
+        '<div><i class="dot exp"></i><span>{{ $t(\'home.garageCost\') }}</span><b>{{ $m(gp.cost) }}</b></div>' +
+        '</div></div>' +
+        '<div v-if="!$isOwner()" class="card collect">' +
+        '<div class="collect-main"><span>{{ $t(\'home.collected\') }}</span><b>{{ $m(gp.deposit) }}</b></div>' +
+        '<small class="muted">{{ $t(\'home.collectedNote\') }}</small>' +
+        '<div class="collect-row"><span>{{ $t(\'home.ownersShare\') }}</span><b>{{ $m(gp.ownersNet) }}</b></div></div>' +
+
+        '<div v-if="$isOwner()" class="hero">' +
         '<div class="hero-main"><span>{{ $isOwner() ? $t(\'home.ownerNet\') : $t(\'home.net\') }}</span><b :class="{neg: totals.net < 0}">{{ $m(totals.net) }}</b></div>' +
         '<div class="hero-row">' +
         '<div><i class="dot dep"></i><span>{{ $t(\'entry.deposit\') }}</span><b>{{ $m(totals.deposit) }}</b></div>' +
@@ -108,7 +137,7 @@
         '<div class="rk-top"><span class="rk-no">{{ c.r.number }}</span><span class="tag" :class="c.status">{{ $t(\'home.s_\' + c.status) }}</span></div>' +
         '<div class="rk-owner" v-if="c.owner">{{ c.owner }}</div>' +
         '<div class="rk-driver" :class="{none: !c.driver}"><avatar v-if="c.driver" :id="c.driver.photo_id" :name="c.driver.name" :size="22"/><ic v-else name="user" :size="15"/> {{ c.driver ? c.driver.name : $t(\'home.noDriver\') }}</div>' +
-        '<div v-if="c.entries.length" class="rk-money"><span>{{ $t(\'entry.deposit\') }} <b>{{ $m(c.t.deposit) }}</b></span><span :class="{neg: c.t.net < 0}">{{ $t(\'entry.net\') }} <b>{{ $m(c.t.net) }}</b></span></div>' +
+        '<div v-if="c.entries.length" class="rk-money"><span>{{ $t(\'entry.deposit\') }} <b>{{ $m(c.t.deposit) }}</b></span><span :class="{neg: c.t.net < 0}">{{ $netLabel() }} <b>{{ $m(c.t.net) }}</b></span></div>' +
         '<div v-else-if="c.expected" class="rk-exp">{{ $t(\'home.expected\') }} {{ $m(c.expected) }}</div>' +
         '<div v-if="c.due" class="rk-due">{{ $t(\'home.due\') }} {{ $m(c.due) }}</div>' +
         '<div class="rk-actions" @click.stop>' +

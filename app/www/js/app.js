@@ -39,6 +39,7 @@
     computed: {
       s: function () { return RM.state; },
       isOwner: function () { return RM.isOwnerRole(); },
+      canSwitch: function () { return RM.canSwitchMode(); },
       tabs: function () { return this.isOwner ? OWNER_TABS : TABS; },
       route: function () {
         var r = route.value;
@@ -84,6 +85,10 @@
       back: function () { history.back(); },
       syncNow: function () { RM.sync.run(); },
       logout: function () { RM.auth.logout(); },
+      toggleMode: function () {
+        RM.setMode(RM.isOwnerRole() ? 'garage' : 'owner');
+        RM.go('home');
+      },
       doUpdate: function () { window.open(this.update.url, '_blank'); },
     },
     template: '<div class="root">' +
@@ -95,7 +100,9 @@
       '<p>{{ s.blocked.trim() || $t(\'blocked.text\') }}</p><button class="btn primary" @click="logout">{{ $t(\'settings.logout\') }}</button></div>' +
       '<div v-else class="app">' +
       '<header class="topbar"><button v-if="isSub" class="icon-btn light" @click="back" :aria-label="$t(\'common.prev\')"><ic name="left" :size="22"/></button>' +
-      '<div class="tb-title"><b>{{ title }}</b><small v-if="!isSub && user">{{ $t(\'role.\' + user.role) }} · {{ user.name }}</small></div>' +
+      '<avatar v-if="!isSub && user" class="tb-avatar" :id="user.avatar_id" :name="user.name" :size="38"/>' +
+      '<div class="tb-title"><b>{{ title }}</b><small v-if="!isSub && user">{{ $t(\'role.\' + (isOwner ? \'owner\' : user.role)) }} · {{ user.name }}</small></div>' +
+      '<button v-if="canSwitch" class="mode-btn" :class="{on: isOwner}" @click="toggleMode"><ic name="rickshaw" :size="16"/><span>{{ isOwner ? $t(\'mode.backToGarage\') : $t(\'mode.myRickshaws\') }}</span></button>' +
       '<button class="sync-chip" :class="chip.cls" @click="syncNow"><i></i><span v-if="chip.text">{{ chip.text }}</span></button></header>' +
       '<div v-if="update" class="banner info"><ic name="sync" :size="16"/> <span>{{ $t(\'update.new\') }}<template v-if="update.notes"> — {{ update.notes }}</template></span><button class="mini pri" @click="doUpdate">{{ $t(\'update.now\') }}</button></div>' +
       '<div v-if="banner" class="banner" :class="banner.kind"><ic name="alert" :size="16"/> {{ banner.text }}</div>' +
@@ -124,6 +131,8 @@
   G.$go = RM.go;
   G.$ui = RM.ui;
   G.$isAdmin = RM.isAdmin;
+  // In the ledger the net is what the rickshaw owner gets; owners just call it their net.
+  G.$netLabel = function () { return RM.t(RM.isOwnerRole() ? 'entry.net' : 'entry.ownerNet'); };
   G.$isOwner = RM.isOwnerRole;
 
   RM.installUi(app);

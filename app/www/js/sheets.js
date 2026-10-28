@@ -124,7 +124,7 @@
         '<fld :label="$t(\'entry.charge\')"><div class="money-in"><span>৳</span><input type="number" inputmode="decimal" min="0" step="any" v-model="f.garage_charge" @input="touched.charge = true" placeholder="0"></div></fld>' +
         '</div>' +
         '<fld v-if="f.expense !== \'\' && Number(f.expense) > 0" :label="$t(\'entry.expenseType\')"><chips v-model="f.expense_type" :options="$opts.expenseTypes()" allow-none/></fld>' +
-        '<div class="net-line" :class="{neg: net < 0}"><span>{{ $t(\'entry.net\') }}</span><b>{{ $m(net) }}</b></div>' +
+        '<div class="net-line" :class="{neg: net < 0}"><span>{{ $netLabel() }}</span><b>{{ $m(net) }}</b></div>' +
         '<button type="button" class="link-btn" @click="more = !more">{{ more ? $t(\'entry.lessOptions\') : $t(\'entry.moreOptions\') }}</button>' +
         '<div v-if="more"><div class="row2">' +
         '<fld :label="$t(\'entry.takenTime\')"><input type="time" v-model="f.taken_time"></fld>' +

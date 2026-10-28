@@ -290,3 +290,20 @@ h1, h2, h3, h4 { margin: 0; }
 .spinner.small { width: 22px; height: 22px; border-width: 3px; }
 .lightbox { position: fixed; inset: 0; background: rgba(0, 0, 0, .88); z-index: 80; display: grid; place-items: center; padding: 16px; }
 .lightbox img { max-width: 100%; max-height: 100%; border-radius: 10px; }
+
+/* ===== garage profit summary, mode switch ===== */
+.hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.hero-sub { margin: 4px 0 0; font-size: 12.5px; opacity: .85; }
+.seg-mini { display: inline-flex; background: rgba(255, 255, 255, .16); border-radius: 999px; padding: 3px; flex-shrink: 0; }
+.seg-mini button { padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; color: rgba(255, 255, 255, .85); }
+.seg-mini button.on { background: #fff; color: #0b5a54; }
+.collect { padding: 12px 14px; }
+.collect-main { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.collect-main span { font-weight: 700; } .collect-main b { font-size: 22px; color: var(--c-dep); }
+.collect-row { display: flex; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 14px; }
+.collect-row b { color: var(--c-net); }
+.kpi.wide { grid-column: 1 / -1; } .kpi.wide b { font-size: 26px; }
+.collect-card .pl:last-of-type { margin-bottom: 8px; }
+.mode-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; background: rgba(255, 255, 255, .16); color: #fff; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.mode-btn.on { background: #fff; color: #0b5a54; }
+.tb-avatar { box-shadow: 0 0 0 2px rgba(255, 255, 255, .55); margin-right: 2px; }

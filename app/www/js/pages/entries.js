@@ -80,7 +80,7 @@
         '<div><span>{{ $t(\'entry.deposit\') }}</span><b class="c-dep">{{ $m(totals.deposit) }}</b></div>' +
         '<div><span>{{ $t(\'entry.expense\') }}</span><b class="c-exp">{{ $m(totals.expense) }}</b></div>' +
         '<div><span>{{ $t(\'entry.charge\') }}</span><b class="c-chg">{{ $m(totals.charge) }}</b></div>' +
-        '<div><span>{{ $t(\'entry.net\') }}</span><b class="c-net" :class="{neg: totals.net < 0}">{{ $m(totals.net) }}</b></div></div>' +
+        '<div><span>{{ $netLabel() }}</span><b class="c-net" :class="{neg: totals.net < 0}">{{ $m(totals.net) }}</b></div></div>' +
 
         '<empty v-if="!groups.length" icon="receipt" :text="$t(\'entries.none\')"/>' +
         '<section v-for="g in groups" :key="g.date" class="day-group">' +

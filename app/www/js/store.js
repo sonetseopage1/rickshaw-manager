@@ -31,6 +31,7 @@
     blocked: '',
     sync: { state: 'idle', pending: 0, last: 0, error: '' },
     announcementHidden: false,
+    mode: 'garage', // 'owner' = an admin looking at only their own rickshaws, like a rickshaw owner
   });
 
   var maps = {};
@@ -58,13 +59,53 @@
 
   /* ---------- reading ---------- */
 
+  /* The admin's own rickshaws: what an owner-mode view is limited to. */
+  var scopeMemo = { sig: '', v: null };
+
+  function selfOwnerId() {
+    rev.owners;
+    var id = null;
+    maps.owners.forEach(function (o) { if (o.is_self && !o.deleted && !id) id = o.id; });
+    return id;
+  }
+
+  function ownEntry(e, s) { return e.owner_id === s.self || (!e.owner_id && s.rick.has(e.rickshaw_id)); }
+
+  function ownerScope() {
+    var sig = [rev.rickshaws, rev.entries, rev.assignments, rev.owners].join('.');
+    if (scopeMemo.sig === sig && scopeMemo.v) return scopeMemo.v;
+    var s = { self: selfOwnerId(), rick: new Set(), drivers: new Set() };
+    if (s.self) {
+      maps.rickshaws.forEach(function (r) { if (!r.deleted && r.owner_id === s.self) s.rick.add(r.id); });
+      maps.entries.forEach(function (e) { if (!e.deleted && e.owner_id === s.self) s.rick.add(e.rickshaw_id); });
+      maps.assignments.forEach(function (a) { if (!a.deleted && s.rick.has(a.rickshaw_id)) s.drivers.add(a.driver_id); });
+      maps.entries.forEach(function (e) { if (!e.deleted && e.driver_id && ownEntry(e, s)) s.drivers.add(e.driver_id); });
+    }
+    scopeMemo = { sig: sig, v: s };
+    return s;
+  }
+
+  function ownerFilter(t, a) {
+    var s = ownerScope();
+    switch (t) {
+      case 'owners': return a.filter(function (o) { return o.id === s.self; });
+      case 'rickshaws': return a.filter(function (r) { return s.rick.has(r.id); });
+      case 'assignments': return a.filter(function (x) { return s.rick.has(x.rickshaw_id); });
+      case 'drivers': return a.filter(function (d) { return s.drivers.has(d.id); });
+      case 'entries': return a.filter(function (e) { return ownEntry(e, s); });
+      default: return []; // the garage's own costs are not the owner's business
+    }
+  }
+
   function list(t) {
     var r = rev[t]; // register reactive dependency
+    var m = state.mode;
     var c = cache[t];
-    if (c && c.r === r) return c.a;
+    if (c && c.r === r && c.m === m) return c.a;
     var a = [];
     maps[t].forEach(function (row) { if (!row.deleted) a.push(row); });
-    cache[t] = { r: r, a: a };
+    if (m === 'owner') a = ownerFilter(t, a);
+    cache[t] = { r: r, m: m, a: a };
     return a;
   }
 
@@ -76,7 +117,7 @@
   /** Recompute `fn` only when one of the tables changed. */
   var memos = {};
   function memo(key, tables, fn) {
-    var sig = tables.map(function (t) { return rev[t]; }).join('.');
+    var sig = tables.map(function (t) { return rev[t]; }).join('.') + state.mode;
     var m = memos[key];
     if (m && m.sig === sig) return m.v;
     var v = fn();
@@ -86,7 +127,11 @@
 
   /* ---------- writing ---------- */
 
-  function role() { return state.session ? state.session.user.role : null; }
+  function role() {
+    if (!state.session) return null;
+    return state.mode === 'owner' ? 'owner' : state.session.user.role;
+  }
+  function realRole() { return state.session ? state.session.user.role : null; }
   function can(t, action) {
     var p = (PERM[t] || {})[role()] || '';
     return p.indexOf(action.charAt(0)) >= 0;
@@ -226,7 +271,7 @@
       });
     }
 
-    var uploads = RM.files ? RM.files.uploadPending() : Promise.resolve();
+    var uploads = RM.files ? RM.files.uploadPending().then(flushAvatar) : Promise.resolve();
     return uploads.then(step).then(function () {
       if (RM.files) RM.files.retryMissing();
       state.sync.last = Date.now();
@@ -273,6 +318,10 @@
   function setSession(res) {
     var prevGarage = state.session && state.session.garage && state.session.garage.id;
     state.session = { token: res.token || (state.session && state.session.token), user: res.user, garage: res.garage, settings: res.settings || {} };
+    // a picture chosen offline stays visible until the server has it
+    var pend = null;
+    try { pend = JSON.parse(RM.util.ls.get('rm_avatar_pending') || 'null'); } catch (e) { pend = null; }
+    if (pend && res.user && pend.user === res.user.id) state.session.user.avatar_id = pend.id;
     saveSession();
     if (res.user && res.user.language && !RM.util.ls.get('rm_lang')) setLang(res.user.language);
     return prevGarage === res.garage.id && state.ready ? Promise.resolve() : loadGarageData(res.garage.id);
@@ -281,6 +330,7 @@
   function login(loginName, password) {
     return RM.api.post('/auth/login', { login: loginName, password: password }).then(function (res) {
       state.blocked = '';
+      state.mode = 'garage';
       return setSession(res);
     }).then(function () { runSync(); });
   }
@@ -294,6 +344,7 @@
 
   function endSession() {
     if (RM.files) RM.files.reset();
+    state.mode = 'garage';
     state.session = null;
     saveSession();
     RM.db.close();
@@ -308,6 +359,28 @@
 
   function refreshMe() {
     return RM.api.get('/me').then(function (res) { return setSession(res); }).catch(function () {});
+  }
+
+  /** Profile picture chosen while offline (or any time): shown at once, sent to the server on the next sync. */
+  function queueAvatar(id) {
+    if (!state.session) return;
+    state.session.user.avatar_id = id || null;
+    saveSession();
+    RM.util.ls.set('rm_avatar_pending', JSON.stringify({ id: id || null, user: state.session.user.id }));
+    scheduleSync();
+  }
+
+  function flushAvatar() {
+    var raw = RM.util.ls.get('rm_avatar_pending'), p = null;
+    try { p = raw ? JSON.parse(raw) : null; } catch (e) { p = null; }
+    if (!p || !state.session || p.user !== state.session.user.id) return Promise.resolve();
+    return RM.api.put('/me', { avatar_id: p.id }).then(function (r) {
+      RM.util.ls.del('rm_avatar_pending');
+      state.session.user = r.user; // keep what the server now says
+      saveSession();
+    }).catch(function (e) {
+      if (e.status === 422) RM.util.ls.del('rm_avatar_pending'); // the picture never reached the server: give up
+    });
   }
 
   function setLang(l) {
@@ -348,7 +421,12 @@
   RM.sync = { run: runSync, schedule: scheduleSync };
   RM.auth = { login: login, register: register, logout: logout, refreshMe: refreshMe, setSession: setSession, setGarage: setGarage, endSession: endSession };
   RM.setLang = setLang;
+  RM.queueAvatar = queueAvatar;
   RM.init = init;
   RM.isAdmin = function () { return role() === 'admin'; };
   RM.isOwnerRole = function () { return role() === 'owner'; };
+  RM.isRealOwner = function () { return realRole() === 'owner'; };
+  // An admin who owns rickshaws can flip the whole app into the owner's point of view.
+  RM.canSwitchMode = function () { return realRole() === 'admin' && !!selfOwnerId(); };
+  RM.setMode = function (m) { state.mode = m === 'owner' ? 'owner' : 'garage'; };
 })();
