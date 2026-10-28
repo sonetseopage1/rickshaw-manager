@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Install</title>
+<link rel="icon" type="image/png" href="{{ asset('assets/admin/logo.png') }}">
 <link rel="stylesheet" href="{{ asset('assets/admin/admin.css') }}">
 </head>
 <body>
 <div class="center">
   <div class="card">
-    <div class="brand"><i></i> First-time setup</div>
+    <div class="brand"><img src="{{ asset('assets/admin/logo.png') }}" alt="" class="brand-logo"> First-time setup</div>
     @if ($keyMissing) <div class="err">INSTALL_KEY is not set in the .env file.</div> @endif
     @if ($errors->any()) <div class="err">{{ $errors->first() }}</div> @endif
     <p class="muted">Creates the database tables and the super admin account.</p>

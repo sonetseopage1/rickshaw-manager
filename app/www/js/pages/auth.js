@@ -44,7 +44,7 @@
         },
       },
       template: '<div class="auth">' +
-        '<div class="auth-top"><div class="logo"><ic name="rickshaw" :size="34"/></div>' +
+        '<div class="auth-top"><div class="logo"><img src="img/logo.png" alt=""></div>' +
         '<h1>{{ $t(\'app.name\') }}</h1><p>{{ $t(\'auth.tagline\') }}</p></div>' +
         '<div class="auth-card">' +
         '<div class="seg-row"><button class="seg" :class="{on: mode === \'login\'}" @click="mode = \'login\'; err = \'\'">{{ $t(\'auth.signIn\') }}</button>' +

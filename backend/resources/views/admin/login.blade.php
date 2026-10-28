@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Super Admin Login</title>
+<link rel="icon" type="image/png" href="{{ asset('assets/admin/logo.png') }}">
 <link rel="stylesheet" href="{{ asset('assets/admin/admin.css') }}">
 </head>
 <body>
 <div class="center">
   <div class="card">
-    <div class="brand"><i></i> Rickshaw SaaS</div>
+    <div class="brand"><img src="{{ asset('assets/admin/logo.png') }}" alt="" class="brand-logo"> Rickshaw SaaS</div>
     @if (session('ok')) <div class="flash">{{ session('ok') }}</div> @endif
     @if ($errors->any()) <div class="err">{{ $errors->first() }}</div> @endif
     <form method="post" action="{{ url('admin/login') }}">

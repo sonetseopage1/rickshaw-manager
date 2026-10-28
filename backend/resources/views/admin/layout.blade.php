@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>@yield('title', 'Super Admin') · Rickshaw Manager</title>
+<link rel="icon" type="image/png" href="{{ asset('assets/admin/logo.png') }}">
 <link rel="stylesheet" href="{{ asset('assets/admin/admin.css') }}">
 </head>
 <body>
 <div class="shell">
   <aside class="side">
-    <div class="brand"><i></i> Rickshaw SaaS</div>
+    <div class="brand"><img src="{{ asset('assets/admin/logo.png') }}" alt="" class="brand-logo"> Rickshaw SaaS</div>
     @php $nav = ['dashboard' => 'Dashboard', 'garages' => 'Garages', 'users' => 'Users', 'plans' => 'Plans', 'payments' => 'Payments', 'settings' => 'Settings']; @endphp
     @foreach ($nav as $route => $label)
       <a class="nav {{ request()->routeIs('admin.'.$route.'*') ? 'on' : '' }}" href="{{ route('admin.'.$route) }}">{{ $label }}</a>
