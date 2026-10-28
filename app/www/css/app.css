@@ -358,3 +358,6 @@ h1, h2, h3, h4 { margin: 0; }
 .dbk-row.done { border-color: var(--done); }
 .c-due, .collect-row.due b { color: var(--mnt); }
 .collect-row.due span { color: var(--muted); }
+
+.mini.view { background: var(--soft); color: var(--done); }
+.rk.done .mini.view { background: #fff; color: var(--done); }

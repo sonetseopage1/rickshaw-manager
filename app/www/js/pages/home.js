@@ -125,7 +125,7 @@ RM.state.homePeriod = 'month';
         open: function (c) {
           this.entrySheet = { entry: c.entries.length === 1 ? c.entries[0] : null, rickshawId: c.r.id };
         },
-        addEntry: function (c) { this.entrySheet = { entry: null, rickshawId: c.r.id }; },
+        addEntry: function (c) { this.entrySheet = { entry: c.entries.length === 1 ? c.entries[0] : null, rickshawId: c.r.id }; },
         assign: function (c) { this.assignSheet = { assignment: null, rickshawId: c.r.id }; },
         edit: function (e) { this.entrySheet = { entry: e, rickshawId: e.rickshaw_id }; },
         go: function (p) { RM.go(p); },
@@ -201,7 +201,8 @@ RM.state.homePeriod = 'month';
         '<div class="rk-actions" @click.stop>' +
         '<button v-if="c.status === \'free\' && $can(\'assignments\', \'create\')" class="mini" @click="assign(c)"><ic name="user" :size="14"/> {{ $t(\'home.assignDriver\') }}</button>' +
         '<button v-if="c.entries.length > 1" class="mini" @click="edit(c.entries[c.entries.length - 1])">{{ $n(c.entries.length) }}x</button>' +
-        '<button v-if="c.status !== \'inactive\' && $can(\'entries\', \'create\')" class="mini pri" @click="addEntry(c)"><ic name="plus" :size="14"/> {{ $t(\'home.addEntry\') }}</button>' +
+        '<button v-if="c.status !== \'inactive\' && $can(\'entries\', \'create\')" class="mini" :class="c.done ? \'view\' : \'pri\'" @click="addEntry(c)">' +
+        '<ic :name="c.done ? \'eye\' : \'plus\'" :size="14"/> {{ c.done ? $t(\'home.viewEntry\') : $t(\'home.giveDeposit\') }}</button>' +
         '</div></div></div>' +
         '<empty v-if="!shown.length" icon="rickshaw" :text="$t(\'home.nothing\')"/>' +
         '</template>' +
