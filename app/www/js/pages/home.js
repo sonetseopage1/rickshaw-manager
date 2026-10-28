@@ -178,7 +178,6 @@ RM.state.homePeriod = 'day';
         '<p v-else class="muted">{{ $t(\'home.askAdmin\') }}</p></div>' +
 
         '<template v-else>' +
-        '<button v-if="$can(\'entries\', \'create\')" class="btn soft block daybook-btn" @click="go(\'daybook\')"><ic name="receipt" :size="18"/> {{ $t(\'home.openDaybook\') }}</button>' +
 
         '<template v-if="staffList">' +
         '<h4 class="sec-title">{{ $t(\'home.owners\') }}</h4><p class="muted small owners-hint">{{ $t(\'home.ownersHint\') }}</p>' +
