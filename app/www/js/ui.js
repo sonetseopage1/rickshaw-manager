@@ -37,10 +37,12 @@
     alert: 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01',
     info: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 16v-4M12 8h.01',
     star: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z',
+    camera: 'M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+    image: 'M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM21 15l-5-5L5 21',
   };
 
   /* ---------- global dialog + toast state ---------- */
-  var ui = reactive({ dialog: null, toast: '', toastKind: '' });
+  var ui = reactive({ dialog: null, toast: '', toastKind: '', lightbox: '' });
   var toastTimer = null;
 
   RM.toast = function (msg, kind) {
@@ -165,7 +167,8 @@
       template: '<sheet :title="title" @close="$emit(\'close\')"><form @submit.prevent="submit">' +
         '<template v-for="x in visible" :key="x.key">' +
         '<fld v-if="x.type !== \'switch\'" :label="x.label" :req="x.req" :hint="x.hint">' +
-        '<chips v-if="x.type === \'chips\'" v-model="f[x.key]" :options="x.options"/>' +
+        '<photo-field v-if="x.type === \'photo\'" v-model="f[x.key]" :kind="x.kind" :wide="x.wide"/>' +
+        '<chips v-else-if="x.type === \'chips\'" v-model="f[x.key]" :options="x.options"/>' +
         '<select v-else-if="x.type === \'select\'" v-model="f[x.key]"><option v-for="o in x.options" :key="o.v" :value="o.v">{{ o.l }}</option></select>' +
         '<textarea v-else-if="x.type === \'textarea\'" rows="2" v-model="f[x.key]"></textarea>' +
         '<input v-else :type="x.type || \'text\'" :inputmode="x.type === \'number\' ? \'decimal\' : null" :step="x.type === \'number\' ? \'any\' : null" :min="x.type === \'number\' ? 0 : null" v-model="f[x.key]" :placeholder="x.placeholder" :required="x.req">' +

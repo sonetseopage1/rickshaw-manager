@@ -41,7 +41,10 @@
           if (f === 'driver') return [
             { key: 'name', label: t('setup.name'), req: true },
             { key: 'phone', label: t('setup.phone'), type: 'tel' },
+            { key: 'photo_id', label: t('setup.photo'), type: 'photo', kind: 'driver_photo' },
             { key: 'nid', label: t('setup.nid') },
+            { key: 'nid_front_id', label: t('setup.nidFront'), type: 'photo', kind: 'nid_front', wide: true },
+            { key: 'nid_back_id', label: t('setup.nidBack'), type: 'photo', kind: 'nid_back', wide: true },
             { key: 'address', label: t('setup.address') },
             { key: 'note', label: t('entry.note'), type: 'textarea' },
             { key: 'is_active', label: t('setup.active'), type: 'switch', def: true },
@@ -226,6 +229,7 @@
         '<template v-if="tab === \'drivers\'">' +
         '<empty v-if="!drivers.length" icon="user" :text="$t(\'setup.noDrivers\')"/>' +
         '<div v-for="d in drivers" :key="d.id" class="row-card" :class="{dim: d.is_active === false}" @click="canEdit(\'drivers\') && open(\'driver\', d)">' +
+        '<avatar :id="d.photo_id" :name="d.name" :size="44"/>' +
         '<div class="rc-main"><b>{{ d.name }}</b><span class="muted">{{ d.phone }}</span></div>' +
         '<div class="rc-side"><span v-if="d.is_active === false" class="tag inactive">{{ $t(\'setup.inactive\') }}</span></div></div></template>' +
 
@@ -242,6 +246,7 @@
         '<p v-if="usersLoading" class="muted center-t">{{ $t(\'common.loading\') }}</p>' +
         '<p v-if="usersErr" class="note warn"><ic name="alert" :size="16"/> {{ usersErr }}</p>' +
         '<div v-for="u in staffUsers" :key="u.id" class="row-card" :class="{dim: u.is_blocked}" @click="open(\'staff\', u)">' +
+        '<avatar :id="u.avatar_id" :name="u.name" :size="44"/>' +
         '<div class="rc-main"><b>{{ u.name }}</b><span class="muted">{{ u.login }}<template v-if="u.role === \'owner\'"> · {{ ownerNameOf(u) }}</template></span></div>' +
         '<div class="rc-side"><span class="tag" :class="u.role === \'admin\' ? \'occupied\' : u.role === \'owner\' ? \'maintenance\' : \'free\'">{{ $t(\'role.\' + u.role) }}</span>' +
         '<span v-if="u.is_blocked" class="tag blocked">{{ $t(\'staff.blocked\') }}</span></div></div></template>' +

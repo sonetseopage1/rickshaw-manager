@@ -37,7 +37,7 @@
         },
       },
       template: '<div class="page">' +
-        '<div class="card profile"><div class="avatar">{{ (user.name || \'?\').charAt(0) }}</div>' +
+        '<div class="card profile"><avatar :id="user.avatar_id" :name="user.name" :size="56"/>' +
         '<div><b>{{ user.name }}</b><span class="muted">{{ garage.name }}</span><span class="tag" :class="user.role === \'admin\' ? \'occupied\' : \'free\'">{{ $t(\'role.\' + user.role) }}</span></div></div>' +
         '<sub-card v-if="!$isOwner()"/>' +
         '<div class="menu"><button v-for="i in items" :key="i.to" class="menu-item" @click="$go(i.to)">' +
@@ -168,6 +168,24 @@
             .catch(function (e) { RM.toast(e.offline ? self.$t('staff.needOnline') : e.code === 'bad_credentials' ? self.$t('settings.wrongPassword') : e.message, 'err'); });
         },
         syncNow: function () { RM.sync.run(); },
+        /** Own profile picture: needs the internet, because the server must hold it before it is attached. */
+        setPhoto: function (ev) {
+          var self = this, f = ev.target.files && ev.target.files[0];
+          ev.target.value = '';
+          if (!f) return;
+          RM.files.compress(f, 'avatar').then(function (blob) {
+            var id = RM.files.add(blob, 'avatar');
+            return RM.files.uploadNow(id).then(function () { return RM.api.put('/me', { avatar_id: id }); });
+          }).then(function (r) { return RM.auth.setSession(r); })
+            .then(function () { RM.toast(self.$t('common.saved'), 'ok'); })
+            .catch(function (e) { RM.toast(e && e.offline || (e && !e.status) ? self.$t('photo.needNet') : (e && e.message) || self.$t('photo.failed'), 'err'); });
+        },
+        removePhoto: function () {
+          var self = this;
+          RM.api.put('/me', { avatar_id: null }).then(function (r) { return RM.auth.setSession(r); })
+            .then(function () { RM.toast(self.$t('common.saved'), 'ok'); })
+            .catch(function (e) { RM.toast(e.offline ? self.$t('photo.needNet') : e.message, 'err'); });
+        },
         saveServer: function () {
           var v = this.server.trim().replace(/\/+$/, '');
           if (v) RM.util.ls.set('rm_server', v); else RM.util.ls.del('rm_server');
@@ -187,6 +205,10 @@
         '<sub-card v-if="!$isOwner()"/>' +
 
         '<div class="card"><h4>{{ $t(\'settings.account\') }}</h4>' +
+        '<div class="my-photo"><avatar :id="user.avatar_id" :name="user.name" :size="76"/><div class="photo-btns">' +
+        '<label class="btn soft sm"><ic name="camera" :size="16"/> {{ $t(\'photo.camera\') }}<input type="file" accept="image/*" capture="user" @change="setPhoto" hidden></label>' +
+        '<label class="btn soft sm"><ic name="image" :size="16"/> {{ $t(\'photo.gallery\') }}<input type="file" accept="image/*" @change="setPhoto" hidden></label>' +
+        '<button v-if="user.avatar_id" class="btn danger-o sm" @click="removePhoto"><ic name="trash" :size="16"/></button></div></div>' +
         '<button class="list-btn" @click="sheet = \'name\'"><span>{{ $t(\'setup.name\') }}</span><b>{{ user.name }}</b></button>' +
         '<div class="list-btn static"><span>{{ $t(\'auth.login\') }}</span><b>{{ user.login }}</b></div>' +
         '<button class="list-btn" @click="sheet = \'password\'"><span>{{ $t(\'settings.changePassword\') }}</span><ic name="right" :size="18"/></button>' +

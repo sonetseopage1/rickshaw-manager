@@ -219,6 +219,57 @@ class SyncTest extends TestCase
         $this->assertContains('Driver 2', array_column($res2->json('changes.drivers'), 'name'));
     }
 
+    public function test_profile_pictures_driver_photos_and_nid_scans(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('local');
+        [$admin] = $this->register();
+        [$other] = $this->register('other_admin');
+        $img = fn () => \Illuminate\Http\UploadedFile::fake()->image('p.jpg', 120, 120)->size(40);
+        $now = now()->getTimestampMs();
+
+        // avatar: upload, then attach to the profile
+        $avatar = (string) Str::uuid();
+        $this->post('/api/files', ['id' => $avatar, 'kind' => 'avatar', 'file' => $img()], $this->h($admin) + ['Accept' => 'application/json'])->assertCreated();
+        $this->putJson('/api/me', ['avatar_id' => (string) Str::uuid()], $this->h($admin))->assertStatus(422);
+        $this->putJson('/api/me', ['avatar_id' => $avatar], $this->h($admin))->assertOk()->assertJsonPath('user.avatar_id', $avatar);
+        $this->get("/api/files/$avatar", $this->h($admin))->assertOk();
+        $this->get("/api/files/$avatar", $this->h($other))->assertNotFound(); // other garage
+
+        // driver with photo + NID images (uploaded by an admin, then read by a manager)
+        $photo = (string) Str::uuid(); $front = (string) Str::uuid(); $back = (string) Str::uuid();
+        foreach ([[$photo, 'driver_photo'], [$front, 'nid_front'], [$back, 'nid_back']] as [$fid, $kind]) {
+            $this->post('/api/files', ['id' => $fid, 'kind' => $kind, 'file' => $img()], $this->h($admin) + ['Accept' => 'application/json'])->assertCreated();
+        }
+        $driver = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'name' => 'Photo Driver', 'photo_id' => $photo, 'nid_front_id' => $front, 'nid_back_id' => $back];
+        $this->postJson('/api/sync', ['changes' => ['drivers' => [$driver]]], $this->h($admin))->assertOk()
+            ->assertJsonPath('changes.drivers.0.nid_front_id', $front);
+
+        $this->postJson('/api/users', ['name' => 'Mgr', 'login' => 'mgrphoto', 'password' => 'secret12', 'role' => 'manager'], $this->h($admin))->assertCreated();
+        $mgr = $this->postJson('/api/auth/login', ['login' => 'mgrphoto', 'password' => 'secret12'])->json('token');
+        $this->get("/api/files/$front", $this->h($mgr))->assertOk();
+        $newFront = (string) Str::uuid();
+        $this->post('/api/files', ['id' => $newFront, 'kind' => 'nid_front', 'file' => $img()], $this->h($mgr) + ['Accept' => 'application/json'])->assertCreated();
+
+        // a rickshaw owner sees the photo but never the NID scans
+        $own = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'name' => 'Owner P'];
+        $rick = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'number' => 'P-1', 'owner_id' => $own['id']];
+        $asg = ['id' => (string) Str::uuid(), 'updated_at' => $now, 'rickshaw_id' => $rick['id'], 'driver_id' => $driver['id'], 'start_date' => '2026-10-01'];
+        $this->postJson('/api/sync', ['changes' => ['owners' => [$own], 'rickshaws' => [$rick], 'assignments' => [$asg]]], $this->h($admin))->assertOk();
+        $this->postJson('/api/users', ['name' => 'Owner P', 'login' => 'ownerphoto', 'password' => 'secret12', 'role' => 'owner', 'owner_ref' => $own['id']], $this->h($admin))->assertCreated();
+        $ot = $this->postJson('/api/auth/login', ['login' => 'ownerphoto', 'password' => 'secret12'])->json('token');
+        $d = $this->postJson('/api/sync', ['cursor' => 0], $this->h($ot))->json('changes.drivers.0');
+        $this->assertSame($photo, $d['photo_id']);
+        $this->assertNull($d['nid_front_id']);
+        $this->get("/api/files/$photo", $this->h($ot))->assertOk();
+        $this->get("/api/files/$front", $this->h($ot))->assertForbidden();
+        $this->post('/api/files', ['id' => (string) Str::uuid(), 'kind' => 'driver_photo', 'file' => $img()], $this->h($ot) + ['Accept' => 'application/json'])->assertForbidden();
+        $this->post('/api/files', ['id' => (string) Str::uuid(), 'kind' => 'avatar', 'file' => $img()], $this->h($ot) + ['Accept' => 'application/json'])->assertCreated();
+
+        // only images are accepted
+        $txt = \Illuminate\Http\UploadedFile::fake()->create('x.txt', 5, 'text/plain');
+        $this->post('/api/files', ['id' => (string) Str::uuid(), 'kind' => 'avatar', 'file' => $txt], $this->h($admin) + ['Accept' => 'application/json'])->assertStatus(422);
+    }
+
     public function test_super_admin_panel_and_install_lock(): void
     {
         $this->register();

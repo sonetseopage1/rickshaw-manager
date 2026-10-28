@@ -128,6 +128,8 @@ class GarageController extends Controller
             foreach (SyncSchema::names() as $table) {
                 DB::table($table)->where('garage_id', $garage->id)->delete();
             }
+            \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory(\App\Models\StoredFile::dir($garage->id));
+            \App\Models\StoredFile::where('garage_id', $garage->id)->delete();
             $garage->users->each(fn ($u) => $u->tokens()->delete());
             $garage->delete(); // users, payments, logs cascade
         });

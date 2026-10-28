@@ -6,7 +6,7 @@
   var TABLES = ['owners', 'drivers', 'rickshaws', 'assignments', 'entries', 'garage_expenses'];
   var FIELDS = {
     owners: ['name', 'phone', 'address', 'note', 'is_self'],
-    drivers: ['name', 'phone', 'nid', 'address', 'note', 'is_active'],
+    drivers: ['name', 'phone', 'nid', 'address', 'note', 'is_active', 'photo_id', 'nid_front_id', 'nid_back_id'],
     rickshaws: ['number', 'owner_id', 'default_rent', 'default_charge', 'status', 'note'],
     assignments: ['rickshaw_id', 'driver_id', 'start_date', 'end_date', 'expected_rent', 'note'],
     entries: ['rickshaw_id', 'driver_id', 'owner_id', 'entry_date', 'deposit', 'expense', 'expense_type', 'garage_charge', 'taken_time', 'deposit_time', 'note'],
@@ -226,7 +226,9 @@
       });
     }
 
-    return step().then(function () {
+    var uploads = RM.files ? RM.files.uploadPending() : Promise.resolve();
+    return uploads.then(step).then(function () {
+      if (RM.files) RM.files.retryMissing();
       state.sync.last = Date.now();
       RM.db.setMeta('last', state.sync.last);
       state.sync.error = '';
@@ -253,7 +255,7 @@
 
   function loadGarageData(garageId) {
     clearMaps();
-    var stores = TABLES.slice();
+    var stores = TABLES.concat(['files']);
     return RM.db.open('rm_garage_' + garageId, stores).then(function () {
       return Promise.all(TABLES.map(function (t) {
         return RM.db.getAll(t).then(function (rows) { rows.forEach(function (r) { maps[t].set(r.id, r); }); bump(t); });
@@ -291,6 +293,7 @@
   }
 
   function endSession() {
+    if (RM.files) RM.files.reset();
     state.session = null;
     saveSession();
     RM.db.close();

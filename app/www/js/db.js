@@ -16,11 +16,12 @@
       if (!window.indexedDB) return Promise.resolve(false);
       return new Promise(function (res) {
         var r;
-        try { r = indexedDB.open(name, 1); } catch (e) { return res(false); }
+        try { r = indexedDB.open(name, 2); } catch (e) { return res(false); }
         r.onupgradeneeded = function () {
           var d = r.result;
-          stores.forEach(function (s) { d.createObjectStore(s, { keyPath: 'id' }); });
-          d.createObjectStore('meta', { keyPath: 'k' });
+          // also runs when an older database is upgraded: add whatever is missing
+          stores.forEach(function (s) { if (!d.objectStoreNames.contains(s)) d.createObjectStore(s, { keyPath: 'id' }); });
+          if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta', { keyPath: 'k' });
         };
         r.onsuccess = function () { db = r.result; res(true); };
         r.onerror = function () { res(false); };
@@ -30,6 +31,11 @@
     getAll: function (store) {
       if (!db) return Promise.resolve([]);
       return wrap(db.transaction(store, 'readonly').objectStore(store).getAll()).catch(function () { return []; });
+    },
+    getOne: function (store, id) {
+      if (!db) return Promise.resolve(null);
+      try { return wrap(db.transaction(store, 'readonly').objectStore(store).get(id)).then(function (r) { return r || null; }).catch(function () { return null; }); }
+      catch (e) { return Promise.resolve(null); }
     },
     put: function (store, obj) {
       if (!db) return Promise.resolve();

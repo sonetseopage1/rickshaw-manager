@@ -116,7 +116,16 @@ class AuthController extends Controller
         $data = $request->validate([
             'name' => 'sometimes|string|max:100',
             'language' => 'sometimes|in:bn,en',
+            'avatar_id' => 'sometimes|nullable|string|size:36',
         ]);
+        if (! empty($data['avatar_id'])) {
+            $ok = \App\Models\StoredFile::where('id', strtolower($data['avatar_id']))
+                ->where('garage_id', $request->user()->garage_id)->where('kind', 'avatar')->exists();
+            if (! $ok) {
+                return response()->json(['code' => 'no_file', 'message' => 'Upload the picture first.'], 422);
+            }
+            $data['avatar_id'] = strtolower($data['avatar_id']);
+        }
         $request->user()->update($data);
         return response()->json(self::session($request->user()));
     }

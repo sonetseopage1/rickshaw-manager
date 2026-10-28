@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\FileController;
 use App\Http\Controllers\Api\GarageController;
 use App\Http\Controllers\Api\SyncController;
 use App\Http\Controllers\Api\UserController;
@@ -18,6 +19,9 @@ Route::middleware(['auth:sanctum', 'garage.active'])->group(function () {
     Route::put('/me/password', [AuthController::class, 'changePassword']);
 
     Route::post('/sync', [SyncController::class, 'sync']);
+
+    Route::post('/files', [FileController::class, 'store'])->middleware('throttle:240,1');
+    Route::get('/files/{id}', [FileController::class, 'show'])->middleware('throttle:600,1');
 
     Route::put('/garage', [GarageController::class, 'update']);
     Route::get('/logs', [GarageController::class, 'logs']);

@@ -107,7 +107,7 @@
         '<div v-for="c in shown" :key="c.r.id" class="rk" :class="c.status" @click="$can(\'entries\', \'create\') && open(c)">' +
         '<div class="rk-top"><span class="rk-no">{{ c.r.number }}</span><span class="tag" :class="c.status">{{ $t(\'home.s_\' + c.status) }}</span></div>' +
         '<div class="rk-owner" v-if="c.owner">{{ c.owner }}</div>' +
-        '<div class="rk-driver" :class="{none: !c.driver}"><ic name="user" :size="15"/> {{ c.driver ? c.driver.name : $t(\'home.noDriver\') }}</div>' +
+        '<div class="rk-driver" :class="{none: !c.driver}"><avatar v-if="c.driver" :id="c.driver.photo_id" :name="c.driver.name" :size="22"/><ic v-else name="user" :size="15"/> {{ c.driver ? c.driver.name : $t(\'home.noDriver\') }}</div>' +
         '<div v-if="c.entries.length" class="rk-money"><span>{{ $t(\'entry.deposit\') }} <b>{{ $m(c.t.deposit) }}</b></span><span :class="{neg: c.t.net < 0}">{{ $t(\'entry.net\') }} <b>{{ $m(c.t.net) }}</b></span></div>' +
         '<div v-else-if="c.expected" class="rk-exp">{{ $t(\'home.expected\') }} {{ $m(c.expected) }}</div>' +
         '<div v-if="c.due" class="rk-due">{{ $t(\'home.due\') }} {{ $m(c.due) }}</div>' +

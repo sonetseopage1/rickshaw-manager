@@ -11,7 +11,7 @@ class User extends Authenticatable
     use HasApiTokens;
 
     protected $fillable = [
-        'name', 'login', 'password', 'role', 'garage_id', 'owner_ref', 'is_blocked', 'language', 'last_login_at',
+        'name', 'login', 'password', 'role', 'garage_id', 'owner_ref', 'avatar_id', 'is_blocked', 'language', 'last_login_at',
     ];
 
     protected $hidden = ['password'];
@@ -54,6 +54,7 @@ class User extends Authenticatable
             'login' => $this->login,
             'role' => $this->role,
             'owner_ref' => $this->owner_ref,
+            'avatar_id' => $this->avatar_id,
             'language' => $this->language,
             'is_blocked' => $this->is_blocked,
             'last_login_at' => $this->last_login_at?->toIso8601String(),

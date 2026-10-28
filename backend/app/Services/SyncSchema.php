@@ -28,6 +28,7 @@ class SyncSchema
                 'fields' => [
                     'name' => ['str', 255], 'phone' => ['str', 32], 'nid' => ['str', 32],
                     'address' => ['str', 255], 'note' => ['text'], 'is_active' => ['bool', 1],
+                    'photo_id' => ['uuid'], 'nid_front_id' => ['uuid'], 'nid_back_id' => ['uuid'],
                 ],
                 'required' => ['name'],
                 'perm' => ['admin' => 'cud', 'manager' => 'cu', 'owner' => ''],

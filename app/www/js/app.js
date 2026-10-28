@@ -106,6 +106,7 @@
       '</div>' +
       '<div v-if="$ui.toast" class="toast" :class="$ui.toastKind">{{ $ui.toast }}</div>' +
       '<confirm-dialog/>' +
+      '<div v-if="$ui.lightbox" class="lightbox" @click="$ui.lightbox = \'\'"><img :src="$ui.lightbox" alt=""></div>' +
       '</div>',
   };
 
@@ -126,6 +127,7 @@
   G.$isOwner = RM.isOwnerRole;
 
   RM.installUi(app);
+  RM.installFiles(app);
   RM.installCharts(app);
   RM.installSheets(app);
   RM.installers.forEach(function (fn) { fn(app); });
