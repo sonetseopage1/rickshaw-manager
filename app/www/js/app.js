@@ -4,11 +4,11 @@
   var U = RM.util;
 
   var TABS = ['home', 'entries', 'assign', 'reports', 'more'];
-  var SUBS = ['setup', 'expenses', 'logs', 'settings', 'daybook'];
+  var SUBS = ['setup', 'expenses', 'logs', 'settings', 'daybook', 'dues'];
   var ROUTES = TABS.concat(SUBS);
   // Rickshaw owners get a read-only subset of the app.
   var OWNER_TABS = ['home', 'entries', 'reports', 'more'];
-  var OWNER_ROUTES = OWNER_TABS.concat(['settings']);
+  var OWNER_ROUTES = OWNER_TABS.concat(['settings', 'dues']);
   var TAB_ICONS = { home: 'home', entries: 'receipt', assign: 'calendar', reports: 'chart', more: 'menu' };
 
   function parse(h) {

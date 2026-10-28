@@ -50,7 +50,8 @@
     return r.default_rent === undefined ? null : r.default_rent;
   }
 
-  function net(e) { return num(e.deposit) - num(e.expense) - num(e.garage_charge); }
+  /** What the owner receives: deposit minus garage charge, rickshaw costs and the amount still due. */
+  function net(e) { return num(e.deposit) - num(e.garage_charge) - num(e.expense) - num(e.due); }
 
   function emptyTotals() { return { deposit: 0, due: 0, expense: 0, charge: 0, net: 0, count: 0 }; }
   function add(t, e) {

@@ -361,3 +361,18 @@ h1, h2, h3, h4 { margin: 0; }
 
 .mini.view { background: var(--soft); color: var(--done); }
 .rk.done .mini.view { background: #fff; color: var(--done); }
+
+/* ===== card money lines and the dues list ===== */
+.rk-money { gap: 1px; }
+.rk-money span { display: flex; justify-content: space-between; gap: 6px; }
+.rk-money .due b { color: var(--mnt); }
+.rk-money .net { margin-top: 3px; padding-top: 3px; border-top: 1px dashed var(--line); font-weight: 800; color: var(--text); }
+.rk-money .net b { color: var(--c-net); font-size: 13.5px; }
+.rk-money .net.neg b { color: var(--bad); }
+.collect-row.tap { cursor: pointer; }
+.dues-hint { margin: 0 2px 10px; }
+.due-group { margin-bottom: 8px; }
+.due-group .row-card { margin-bottom: 4px; }
+.due-items { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); padding: 4px 12px; margin: 0 0 6px; }
+.due-item { display: grid; grid-template-columns: 1fr auto auto auto; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
+.due-item:last-child { border-bottom: 0; }

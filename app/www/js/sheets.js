@@ -73,7 +73,7 @@
           return other && other.id !== self.entry.id ? other : null;
         },
         net: function () {
-          return B.num(this.f.deposit) - B.num(this.f.expense) - B.num(this.f.garage_charge);
+          return B.num(this.f.deposit) - B.num(this.f.garage_charge) - B.num(this.f.expense) - B.num(this.f.due);
         },
       },
       watch: {

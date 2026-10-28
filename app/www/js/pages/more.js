@@ -27,9 +27,13 @@
         user: function () { return RM.state.session.user; },
         garage: function () { return RM.state.session.garage; },
         items: function () {
-          if (RM.isOwnerRole()) return [{ to: 'settings', icon: 'sliders', t: 'more.settings', d: 'more.settingsDesc' }];
+          if (RM.isOwnerRole()) return [
+            { to: 'dues', icon: 'wallet', t: 'more.dues', d: 'more.duesDesc' },
+            { to: 'settings', icon: 'sliders', t: 'more.settings', d: 'more.settingsDesc' },
+          ];
           return [
             { to: 'setup', icon: 'rickshaw', t: 'more.setup', d: 'more.setupDesc' },
+            { to: 'dues', icon: 'clock', t: 'more.dues', d: 'more.duesDesc' },
             { to: 'expenses', icon: 'wallet', t: 'more.expenses', d: 'more.expensesDesc' },
             { to: 'logs', icon: 'activity', t: 'more.logs', d: 'more.logsDesc' },
             { to: 'settings', icon: 'sliders', t: 'more.settings', d: 'more.settingsDesc' },

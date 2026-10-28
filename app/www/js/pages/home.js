@@ -148,7 +148,7 @@ RM.state.homePeriod = 'month';
         '<div class="collect-main"><span>{{ $t(\'home.collected\') }}</span><b>{{ $m(gp.deposit) }}</b></div>' +
         '<small class="muted">{{ $t(\'home.collectedNote\') }}</small>' +
         '<div class="collect-row"><span>{{ $t(\'home.ownersShare\') }}</span><b>{{ $m(gp.ownersNet) }}</b></div>' +
-        '<div v-if="gp.due" class="collect-row due"><span>{{ $t(\'home.dueTotal\') }}</span><b>{{ $m(gp.due) }}</b></div></div>' +
+        '<div v-if="gp.due" class="collect-row due tap" @click="go(\'dues\')"><span>{{ $t(\'home.dueTotal\') }}</span><b>{{ $m(gp.due) }}</b></div></div>' +
 
         '<div v-if="$isOwner()" class="hero">' +
         '<div class="hero-main"><span>{{ $isOwner() ? $t(\'home.ownerNet\') : $t(\'home.net\') }}</span><b :class="{neg: totals.net < 0}">{{ $m(totals.net) }}</b></div>' +
@@ -195,9 +195,13 @@ RM.state.homePeriod = 'month';
         '<div class="rk-top"><span class="rk-no">{{ c.r.number }}</span><span class="tag" :class="c.done ? \'done\' : c.status">{{ c.done ? $t(\'home.s_done\') : $t(\'home.s_\' + c.status) }}</span></div>' +
         '<div class="rk-owner" v-if="c.owner">{{ c.owner }}</div>' +
         '<div class="rk-driver" :class="{none: !c.driver}"><avatar v-if="c.driver" :id="c.driver.photo_id" :name="c.driver.name" :size="22"/><ic v-else name="user" :size="15"/> {{ c.driver ? c.driver.name : $t(\'home.noDriver\') }}</div>' +
-        '<div v-if="c.entries.length" class="rk-money"><span>{{ $t(\'entry.deposit\') }} <b>{{ $m(c.t.deposit) }}</b></span><span :class="{neg: c.t.net < 0}">{{ $netLabel() }} <b>{{ $m(c.t.net) }}</b></span></div>' +
+        '<div v-if="c.entries.length" class="rk-money">' +
+        '<span>{{ $t(\'entry.deposit\') }} <b>{{ $m(c.t.deposit) }}</b></span>' +
+        '<span>{{ $t(\'entry.charge\') }} <b>{{ $m(c.t.charge) }}</b></span>' +
+        '<span v-if="c.t.expense">{{ $t(\'entry.expense\') }} <b>{{ $m(c.t.expense) }}</b></span>' +
+        '<span v-if="c.due" class="due">{{ $t(\'home.due\') }} <b>{{ $m(c.due) }}</b></span>' +
+        '<span class="net" :class="{neg: c.t.net < 0}">{{ $netLabel() }} <b>{{ $m(c.t.net) }}</b></span></div>' +
         '<div v-else-if="c.expected" class="rk-exp">{{ $t(\'home.expected\') }} {{ $m(c.expected) }}</div>' +
-        '<div v-if="c.due" class="rk-due">{{ $t(\'home.due\') }} {{ $m(c.due) }}</div>' +
         '<div class="rk-actions" @click.stop>' +
         '<button v-if="c.status === \'free\' && $can(\'assignments\', \'create\')" class="mini" @click="assign(c)"><ic name="user" :size="14"/> {{ $t(\'home.assignDriver\') }}</button>' +
         '<button v-if="c.entries.length > 1" class="mini" @click="edit(c.entries[c.entries.length - 1])">{{ $n(c.entries.length) }}x</button>' +
