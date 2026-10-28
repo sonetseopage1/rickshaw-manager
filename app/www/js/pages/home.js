@@ -160,10 +160,11 @@ RM.state.homePeriod = 'day';
         '<div class="seg-mini"><button :class="{on: period === \'day\'}" @click="period = \'day\'">{{ $t(\'home.pDay\') }}</button>' +
         '<button :class="{on: period === \'month\'}" @click="period = \'month\'">{{ $t(\'home.pMonth\') }}</button></div></div>' +
         '<p class="hero-sub">{{ period === \'month\' ? $d(date, \'month\') : $d(date, \'long\') }}</p>' +
-        '<div class="hero-row">' +
+        '<div class="hero-row four">' +
         '<div class="tap" @click="detail = \'deposit\'"><i class="dot dep"></i><span>{{ $t(\'entry.deposit\') }}</span><b>{{ $m(totals.deposit) }}</b><ic name="right" :size="14" class="chev"/></div>' +
         '<div class="tap" @click="detail = \'expense\'"><i class="dot exp"></i><span>{{ $t(\'entry.expense\') }}</span><b>{{ $m(totals.expense) }}</b><ic name="right" :size="14" class="chev"/></div>' +
         '<div class="tap" @click="detail = \'charge\'"><i class="dot chg"></i><span>{{ $t(\'entry.charge\') }}</span><b>{{ $m(totals.charge) }}</b><ic name="right" :size="14" class="chev"/></div>' +
+        '<div class="tap" @click="detail = \'due\'"><i class="dot due"></i><span>{{ $t(\'home.due\') }}</span><b>{{ $m(totals.due) }}</b><ic name="right" :size="14" class="chev"/></div>' +
         '</div></div>' +
 
         '<div v-if="!cards.length && $isOwner()" class="card onboard"><p>{{ $t(\'home.ownerEmpty\') }}</p></div>' +

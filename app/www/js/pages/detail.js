@@ -11,7 +11,7 @@
       computed: {
         multi: function () { return this.from !== this.to; },
         title: function () {
-          var map = { income: 'home.garageIncome', cost: 'home.garageCost', deposit: 'entry.deposit', expense: 'entry.expense', charge: 'entry.charge' };
+          var map = { income: 'home.garageIncome', cost: 'home.garageCost', deposit: 'entry.deposit', expense: 'entry.expense', charge: 'entry.charge', due: 'home.due' };
           return this.$t(map[this.kind]);
         },
         periodLabel: function () { return this.multi ? this.$d(this.from, 'month') : this.$d(this.from, 'long'); },
@@ -23,7 +23,7 @@
               out.push({ id: x.id, date: x.expense_date, main: self.$t('cat.' + x.category), sub: x.note || '', amount: B.num(x.amount), item: x });
             });
           } else {
-            var field = { income: 'garage_charge', charge: 'garage_charge', deposit: 'deposit', expense: 'expense' }[k];
+            var field = { income: 'garage_charge', charge: 'garage_charge', deposit: 'deposit', expense: 'expense', due: 'due' }[k];
             D.list('entries').forEach(function (e) {
               if (e.entry_date < from || e.entry_date > to) return;
               var amount = B.num(e[field]);
